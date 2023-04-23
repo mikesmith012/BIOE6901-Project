@@ -23,16 +23,18 @@ generate gui file: pyuic5 -x ui/gui.ui -o gui.py
 
 class MainThread(QtCore.QThread):
     """
-    back-end worker thread: handles camera access, motion tracking 
+    back-end worker thread: handles camera access, motion tracking
     and counting reps
 
     """
+
     image = QtCore.pyqtSignal(QtGui.QImage)
     frame_rate = QtCore.pyqtSignal(str)
 
     """ back-end signals to handle counting reps """
     right_arm_ext = QtCore.pyqtSignal(str)
     left_arm_ext = QtCore.pyqtSignal(str)
+    sit_to_stand = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -74,7 +76,7 @@ class MainThread(QtCore.QThread):
         self._motion = Motion()
         crop = {"start": INIT, "end": INIT}
         cropped = False
-        
+
         """ add and init movements """
         self.add_movements()
         self.reset_all_count()
@@ -114,8 +116,8 @@ class MainThread(QtCore.QThread):
         cap.release()
 
     def stop(self):
-        """ 
-        stops the worker thread 
+        """
+        stops the worker thread
         """
         self._active = False
         self.wait()
@@ -137,7 +139,7 @@ class MainThread(QtCore.QThread):
         self._is_recording = not self._is_recording
         if self._is_recording:
             self.reset_all_count()
-    
+
     def reset_all_count(self):
         """
         resets count for all movements
@@ -145,42 +147,78 @@ class MainThread(QtCore.QThread):
         """
         self._right_arm_ext.reset_count()
         self._left_arm_ext.reset_count()
+        self._sit_to_stand.reset_count()
 
     def add_movements(self):
-        
-        """ add right arm extensions """
-        self._right_arm_ext = Movement([
-            (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER),
-            (RIGHT_ELBOW, RIGHT_SHOULDER, LEFT_SHOULDER),
-            ], [150, 130], True)
+        """add right arm extensions"""
+        self._right_arm_ext = Movement(
+            [
+                (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER),
+                (RIGHT_ELBOW, RIGHT_SHOULDER, LEFT_SHOULDER),
+            ],
+            [160, 135],
+            True,
+            init_movement=True,
+            init_threshold=100,
+        )
         self._tracking_movements.update({"right arm ext": self._right_arm_ext})
-        
+
         """ add left arm extensions """
-        self._left_arm_ext = Movement([
-            (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER),
-            (LEFT_ELBOW, LEFT_SHOULDER, RIGHT_SHOULDER),
-            ], [150, 130], True)
+        self._left_arm_ext = Movement(
+            [
+                (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER),
+                (LEFT_ELBOW, LEFT_SHOULDER, RIGHT_SHOULDER),
+            ],
+            [160, 135],
+            True,
+            init_movement=True,
+            init_threshold=100,
+        )
         self._tracking_movements.update({"left arm ext": self._left_arm_ext})
 
-    def count_movements(self):
+        """ add sit to stand movement """
+        self._sit_to_stand = Movement(
+            [
+                (RIGHT_ANKLE, RIGHT_KNEE, RIGHT_HIP),
+                (LEFT_ANKLE, LEFT_KNEE, LEFT_HIP),
+                (RIGHT_KNEE, RIGHT_HIP, RIGHT_SHOULDER),
+                (LEFT_KNEE, LEFT_HIP, LEFT_SHOULDER),
+            ],
+            [160, 150, 160, 160],
+            True,
+            init_movement=True,
+            init_threshold=120,
+        )
+        self._tracking_movements.update({"sit to stand": self._sit_to_stand})
 
-        """ right arm extensions (if enabled) """
+    def count_movements(self):
+        """right arm extensions (if enabled)"""
         if self._right_arm_ext.get_tracking_status():
-            self._right_arm_ext_count = self._right_arm_ext.count_movement(self._pose_landmarks)
+            self._right_arm_ext_count = self._right_arm_ext.count_movement(
+                self._pose_landmarks
+            )
             self.right_arm_ext.emit(str(self._right_arm_ext_count))
 
         """ left arm extensions (if enabled) """
         if self._left_arm_ext.get_tracking_status():
-            self._left_arm_ext_count = self._left_arm_ext.count_movement(self._pose_landmarks)
+            self._left_arm_ext_count = self._left_arm_ext.count_movement(
+                self._pose_landmarks
+            )
             self.left_arm_ext.emit(str(self._left_arm_ext_count))
 
+        """ sit to stand (if enabled) """
+        if self._sit_to_stand.get_tracking_status():
+            self._sit_to_stand_count = self._sit_to_stand.count_movement(
+                self._pose_landmarks
+            )
+            self.sit_to_stand.emit(str(self._sit_to_stand_count))
+
     def get_tracking_movements(self):
-        """ 
-        returns a dictionary containing all movements 
+        """
+        returns a dictionary containing all movements
         called by the main-window thread to update gui
         """
         return self._tracking_movements.copy()
-        
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -188,6 +226,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     front-end main-window thread: handles graphical user interface
 
     """
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -205,6 +244,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """ connect motion traking signals """
         self._main_thread.right_arm_ext.connect(self.display_right_arm_ext_count)
         self._main_thread.left_arm_ext.connect(self.display_left_arm_ext_count)
+        self._main_thread.sit_to_stand.connect(self.display_sit_to_stand_count)
 
         """ connect front-end gui signals """
         self.update_start_pushButton_text()
@@ -229,7 +269,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self._movements = self._main_thread.get_tracking_movements()
             for name, movement in self._movements.items():
                 print(f"{name}: {movement.get_tracking_status()}")
-            print("\n")
+            # print("\n")
 
         else:
             self.start_pushButton.setText("Start")
@@ -239,6 +279,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def display_left_arm_ext_count(self, count):
         self.left_arm_ext_count_label.setText(f"Left Arm Extensions: {count}")
+
+    def display_sit_to_stand_count(self, count):
+        self.sit_to_stand_count_label.setText(f"Sit to Stand: {count}")
 
 
 def main():

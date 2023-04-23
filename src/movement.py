@@ -1,13 +1,16 @@
 import math
 from util import *
 
+
 class Movement:
     """
     generic movement class
 
     """
 
-    def __init__(self, points, thresholds, is_tracking):
+    def __init__(
+        self, points, thresholds, is_tracking, init_movement=False, init_threshold=None
+    ):
         """
         points: a list containing tuples of three points
         thresholds: a list of threshold angle values (in degrees)
@@ -18,8 +21,8 @@ class Movement:
 
         """ check is "points" and "thresholds" are the same length """
         if len(points) != len(thresholds):
-            self.element_mismatch_err()   
-        
+            self.element_mismatch_err()
+
         self._points = points
         self._thresholds = thresholds
         self._is_tracking = is_tracking
@@ -32,14 +35,22 @@ class Movement:
             if len(p) != 3:
                 self.invalid_num_of_elements_err(i)
 
+        self._init_movement = init_movement
+        self._init_threshold = init_threshold
+        if self._init_movement:
+            self._init_angle = {"prev": -1, "curr": -1}
+            self._is_count = False
+        else:
+            self._is_count = True
+
         self.reset_count()
 
     def element_mismatch_err(self):
         raise ValueError("element mismatch")
-    
+
     def invalid_num_of_elements_err(self, i):
         raise ValueError(f"invalid number of elements in index {i}")
-    
+
     def reset_count(self):
         """
         init count to zero by default
@@ -68,6 +79,20 @@ class Movement:
         for angle in self._angles:
             angle["prev"] = angle["curr"]
 
+        if self._init_movement and len(landmarks) != 0:
+            self._init_angle["prev"] = self._init_angle["curr"]
+            self._init_angle["curr"] = self.find_angle(
+                landmarks[self._points[0][0]],
+                landmarks[self._points[0][1]],
+                landmarks[self._points[0][2]],
+            )
+            if (
+                self._init_angle["curr"] != -1
+                and self._init_angle["curr"] != -1
+                and self._init_angle["curr"] < self._init_threshold
+            ):
+                self._is_count = True
+
         if len(landmarks) != 0:
             for i, angle in enumerate(self._angles):
                 angle["curr"] = self.find_angle(
@@ -91,11 +116,13 @@ class Movement:
                 cond.append(angle["prev"] < self._thresholds[i])
 
         """ if all conditions are met, increment count """
-        if all(cond):
+        if all(cond) and self._is_count:
             self._count += 1
+            if self._init_movement:
+                self._is_count = False
 
         return self._count
-                
+
     def find_angle(self, p1, p2, p3):
         """
         generic function for calutating the angle between two lines

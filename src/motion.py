@@ -26,6 +26,7 @@ class Motion:
     motion capture module
 
     """
+
     def __init__(
         self,
         static_image_mode=False,
@@ -99,15 +100,14 @@ class Motion:
 
             """
             for id, landmark in enumerate(results.pose_landmarks.landmark):
-
-                """ apply positional adjustment for the cropped frame """
+                """apply positional adjustment for the cropped frame"""
                 if cropped:
                     landmark.x = landmark.x + adjust[X]
                     landmark.y = landmark.y + adjust[Y]
 
                 """ append raw co-ordinate values (ranges from 0 to 1) """
                 landmarks.append((id, landmark.x, landmark.y))
-                
+
                 """ 
                 calculate co-ordinate values in pixels to be used later for 
                 drawing the bounding box and to crop the next frame
@@ -154,4 +154,3 @@ class Motion:
 
         """ returns image frame and cropped status """
         return img, cropped
-    
