@@ -2,13 +2,19 @@ import cv2, sys, time
 from PyQt5 import QtCore, QtWidgets, QtGui
 from gui import Ui_MainWindow
 
+from movement import *
 from motion import *
 from util import *
 
 """ 
 works with python version 3.10
 
-install dependencies: numpy, opencv_python, mediapipe, PyQt5, pyqt5-tools
+Setup
+1.  Create python virtual environment: `python3 -m venv venv`
+2.  Activate virtual environment: `source venv/bin/activate`
+3.  Install dependencies: `python3 -m pip install -r req.txt`
+4.  Run the program: `python3 src/main.py`
+5.  To deactivate virtual environment: `deactivate`
 
 generate gui file: pyuic5 -x ui/gui.ui -o gui.py
 
@@ -32,13 +38,7 @@ class MainThread(QtCore.QThread):
         super().__init__(parent)
 
         self._is_recording = False
-        self.reset_all_count()
-
-        """ set default movements to track """
-        self._track_movements = {
-            "right arm ext": True, 
-            "left arm ext": True,
-        }
+        self._tracking_movements = {}
 
     def get_frame_rate(self, frame_times):
         """
@@ -74,6 +74,10 @@ class MainThread(QtCore.QThread):
         self._motion = Motion()
         crop = {"start": INIT, "end": INIT}
         cropped = False
+        
+        """ add and init movements """
+        self.add_movements()
+        self.reset_all_count()
 
         while cap.isOpened() and self._active:
             ret, img = cap.read()
@@ -89,7 +93,7 @@ class MainThread(QtCore.QThread):
             frame_rate = self.get_frame_rate(frame_times)
             self.frame_rate.emit(frame_rate)
 
-            """ track motion (only when recording) """
+            """ track motion and count movements (only when recording) """
             if self._is_recording:
                 self._pose_landmarks = []
                 img, cropped = self._motion.track_motion(
@@ -97,13 +101,7 @@ class MainThread(QtCore.QThread):
                 )
                 # print(self._pose_landmarks)
 
-                """ right arm extensions (if enabled) """
-                if self._track_movements["right arm ext"]:
-                    self.update_right_arm_ext_count()
-
-                """ left arm extensions (if enabled) """
-                if self._track_movements["left arm ext"]:
-                    self.update_left_arm_ext_count()
+                self.count_movements()
 
             """ show detected elements on screen """
             img = cv2.cvtColor(cv2.flip(img, 1), cv2.COLOR_BGR2RGB)
@@ -116,53 +114,73 @@ class MainThread(QtCore.QThread):
         cap.release()
 
     def stop(self):
+        """ 
+        stops the worker thread 
+        """
         self._active = False
         self.wait()
 
     def get_recording_status(self):
+        """
+        gets current recording status
+        returns True if recording, else returns False
+        used in the main window thread to update gui
+        """
         return self._is_recording
 
     def start_stop_recording(self):
+        """
+        starts and stops recording
+        called from the main window thread whenever the start/stop button is pressed
+        resets all movement count
+        """
         self._is_recording = not self._is_recording
         if self._is_recording:
             self.reset_all_count()
     
     def reset_all_count(self):
+        """
+        resets count for all movements
+        make sure to update when adding new movements
+        """
+        self._right_arm_ext.reset_count()
+        self._left_arm_ext.reset_count()
 
-        """ reset count values """
-        self._right_arm_ext_count = 0
-        self._left_arm_ext_count = 0
+    def add_movements(self):
+        
+        """ add right arm extensions """
+        self._right_arm_ext = Movement([
+            (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER),
+            (RIGHT_ELBOW, RIGHT_SHOULDER, LEFT_SHOULDER),
+            ], [150, 130], True)
+        self._tracking_movements.update({"right arm ext": self._right_arm_ext})
+        
+        """ add left arm extensions """
+        self._left_arm_ext = Movement([
+            (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER),
+            (LEFT_ELBOW, LEFT_SHOULDER, RIGHT_SHOULDER),
+            ], [150, 130], True)
+        self._tracking_movements.update({"left arm ext": self._left_arm_ext})
 
-        """ reset angles """
-        self._right_arm_ext_angles = {"prev": [-1, -1], "curr": [-1, -1]}
-        self._left_arm_ext_angles = {"prev": [-1, -1], "curr": [-1, -1]}
+    def count_movements(self):
+
+        """ right arm extensions (if enabled) """
+        if self._right_arm_ext.get_tracking_status():
+            self._right_arm_ext_count = self._right_arm_ext.count_movement(self._pose_landmarks)
+            self.right_arm_ext.emit(str(self._right_arm_ext_count))
+
+        """ left arm extensions (if enabled) """
+        if self._left_arm_ext.get_tracking_status():
+            self._left_arm_ext_count = self._left_arm_ext.count_movement(self._pose_landmarks)
+            self.left_arm_ext.emit(str(self._left_arm_ext_count))
 
     def get_tracking_movements(self):
-        return self._track_movements
-    
-    def update_tracking_movements(self, movement, status):
-        try:
-            self._track_movements[movement] = status
-        except:
-            print("index error")
-
-    def update_right_arm_ext_count(self):
-        self._right_arm_ext_count = self._motion.arm_extensions(
-            self._pose_landmarks,
-            self._right_arm_ext_count, 
-            self._right_arm_ext_angles,
-            "r",
-        )
-        self.right_arm_ext.emit(str(self._right_arm_ext_count))
-
-    def update_left_arm_ext_count(self):
-        self._left_arm_ext_count = self._motion.arm_extensions(
-            self._pose_landmarks, 
-            self._left_arm_ext_count, 
-            self._left_arm_ext_angles,
-            "l",
-        )
-        self.left_arm_ext.emit(str(self._left_arm_ext_count))
+        """ 
+        returns a dictionary containing all movements 
+        called by the main-window thread to update gui
+        """
+        return self._tracking_movements.copy()
+        
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -188,15 +206,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._main_thread.right_arm_ext.connect(self.display_right_arm_ext_count)
         self._main_thread.left_arm_ext.connect(self.display_left_arm_ext_count)
 
-        """
-        connect front-end gui signals
-        
-        """
+        """ connect front-end gui signals """
         self.update_start_pushButton_text()
         self.start_pushButton.clicked.connect(self._main_thread.start_stop_recording)
         self.start_pushButton.clicked.connect(self.update_start_pushButton_text)
-
-        self._movements = self._main_thread.get_tracking_movements()
 
     def update_frame(self, img):
         self.img_label.setPixmap(QtGui.QPixmap(img))
@@ -208,6 +221,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         is_recording = self._main_thread.get_recording_status()
         if is_recording:
             self.start_pushButton.setText("Stop")
+
+            """ 
+            get tracking movements status and print to terminal 
+            (only used for testing)
+            """
+            self._movements = self._main_thread.get_tracking_movements()
+            for name, movement in self._movements.items():
+                print(f"{name}: {movement.get_tracking_status()}")
+            print("\n")
+
         else:
             self.start_pushButton.setText("Start")
 

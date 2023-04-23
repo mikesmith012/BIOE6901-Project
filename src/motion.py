@@ -1,4 +1,4 @@
-import cv2, math
+import cv2
 import mediapipe as mp
 from util import *
 
@@ -19,9 +19,6 @@ LEFT_KNEE = 25
 RIGHT_KNEE = 26
 LEFT_ANKLE = 27
 RIGHT_ANKLE = 28
-
-""" counting thresholds (degrees) """
-ARM_EXT = 150
 
 
 class Motion:
@@ -155,69 +152,6 @@ class Motion:
             else:
                 cropped = False
 
+        """ returns image frame and cropped status """
         return img, cropped
-
-    def arm_extensions(self, landmarks, count, angles, arm):
-        """
-        for counting the number of arm extentions
-
-        """
-        angles["prev"] = angles["curr"].copy()
-
-        if len(landmarks) != 0:
-            if arm == "r":
-                p1 = landmarks[RIGHT_SHOULDER]
-                p2 = landmarks[RIGHT_ELBOW]
-                p3 = landmarks[RIGHT_WRIST]
-                p4 = landmarks[LEFT_SHOULDER]
-            elif arm == "l":
-                p1 = landmarks[LEFT_SHOULDER]
-                p2 = landmarks[LEFT_ELBOW]
-                p3 = landmarks[LEFT_WRIST]
-                p4 = landmarks[RIGHT_SHOULDER]
-            else:
-                return count    # exit function
-            
-            angles["curr"][0] = self.find_angle(p1, p2, p3)
-            angles["curr"][1] = self.find_angle(p2, p1, p4)
-
-        else:
-            angles["curr"] = [-1, -1]
-
-        if (
-            angles["prev"][0] != -1 and angles["curr"][0] != -1
-            and angles["prev"][1] != -1 and angles["curr"][1] != -1
-            and angles["prev"][0] < ARM_EXT and angles["curr"][0] > ARM_EXT
-            and angles["curr"][1] > ARM_EXT
-        ):
-            count += 1
-        
-        return count
-
-    def find_angle(self, p1, p2, p3):
-        """
-        generic function for calutating the angle between two lines
-        defined by three points
-
-        note: p2 must be the common point between the two lines
-
-        """
-        _, x1, y1 = p1
-        _, x2, y2 = p2
-        _, x3, y3 = p3
-
-        c1 = [x1 > MIN, x1 < MAX, y1 > MIN, y1 < MAX]
-        c2 = [x2 > MIN, x2 < MAX, y2 > MIN, y2 < MAX]
-        c3 = [x3 > MIN, x3 < MAX, y3 > MIN, y3 < MAX]
-
-        if all(c1) and all(c2) and all(c3):
-            angle_rad = math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2)
-            angle_deg = abs(math.degrees(angle_rad))
-        else:
-            angle_deg = -1
-
-        """ make sure all angle values are between 0 and 180 degrees """
-        if angle_deg < 180:
-            return angle_deg
-        else:
-            return 360 - angle_deg
+    
