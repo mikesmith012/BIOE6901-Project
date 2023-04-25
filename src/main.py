@@ -156,10 +156,8 @@ class MainThread(QtCore.QThread):
                 (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER),
                 (RIGHT_ELBOW, RIGHT_SHOULDER, LEFT_SHOULDER),
             ],
-            [160, 135],
+            [150, 160],
             True,
-            init_movement=True,
-            init_threshold=100,
         )
         self._tracking_movements.update({"right arm ext": self._right_arm_ext})
 
@@ -169,10 +167,8 @@ class MainThread(QtCore.QThread):
                 (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER),
                 (LEFT_ELBOW, LEFT_SHOULDER, RIGHT_SHOULDER),
             ],
-            [160, 135],
+            [150, 160],
             True,
-            init_movement=True,
-            init_threshold=100,
         )
         self._tracking_movements.update({"left arm ext": self._left_arm_ext})
 
@@ -184,10 +180,8 @@ class MainThread(QtCore.QThread):
                 (RIGHT_KNEE, RIGHT_HIP, RIGHT_SHOULDER),
                 (LEFT_KNEE, LEFT_HIP, LEFT_SHOULDER),
             ],
-            [160, 150, 160, 160],
+            [160, 160, 150, 150],
             True,
-            init_movement=True,
-            init_threshold=120,
         )
         self._tracking_movements.update({"sit to stand": self._sit_to_stand})
 
@@ -211,6 +205,7 @@ class MainThread(QtCore.QThread):
             self._sit_to_stand_count = self._sit_to_stand.count_movement(
                 self._pose_landmarks
             )
+            # print(self._sit_to_stand_count)
             self.sit_to_stand.emit(str(self._sit_to_stand_count))
 
     def get_tracking_movements(self):

@@ -8,9 +8,7 @@ class Movement:
 
     """
 
-    def __init__(
-        self, points, thresholds, is_tracking, init_movement=False, init_threshold=None
-    ):
+    def __init__(self, points, thresholds, is_tracking):
         """
         points: a list containing tuples of three points
         thresholds: a list of threshold angle values (in degrees)
@@ -27,21 +25,18 @@ class Movement:
         self._thresholds = thresholds
         self._is_tracking = is_tracking
 
+        self._reset = False
         self._angles = []
+        self._less_than_thresh = []
+        self._greater_than_thresh = []
         for i, p in enumerate(self._points):
             self._angles.append({"prev": -1, "curr": -1})
+            self._less_than_thresh.append(False)
+            self._greater_than_thresh.append(False)
 
             """ check is each element in "points" is a tuple of three values """
             if len(p) != 3:
                 self.invalid_num_of_elements_err(i)
-
-        self._init_movement = init_movement
-        self._init_threshold = init_threshold
-        if self._init_movement:
-            self._init_angle = {"prev": -1, "curr": -1}
-            self._is_count = False
-        else:
-            self._is_count = True
 
         self.reset_count()
 
@@ -78,21 +73,7 @@ class Movement:
         """
         for angle in self._angles:
             angle["prev"] = angle["curr"]
-
-        if self._init_movement and len(landmarks) != 0:
-            self._init_angle["prev"] = self._init_angle["curr"]
-            self._init_angle["curr"] = self.find_angle(
-                landmarks[self._points[0][0]],
-                landmarks[self._points[0][1]],
-                landmarks[self._points[0][2]],
-            )
-            if (
-                self._init_angle["curr"] != -1
-                and self._init_angle["curr"] != -1
-                and self._init_angle["curr"] < self._init_threshold
-            ):
-                self._is_count = True
-
+        
         if len(landmarks) != 0:
             for i, angle in enumerate(self._angles):
                 angle["curr"] = self.find_angle(
@@ -107,19 +88,22 @@ class Movement:
         # print(self._angles[0]["curr"])
 
         """ specify conditions using the threshold values """
-        cond = []
         for i, angle in enumerate(self._angles):
-            cond.append(angle["prev"] != -1)
-            cond.append(angle["curr"] != -1)
-            cond.append(angle["curr"] > self._thresholds[i])
-            if i == 0:
-                cond.append(angle["prev"] < self._thresholds[i])
+            if angle["curr"] > 0 and angle["prev"] > 0:
+                if angle["curr"] < self._thresholds[i]:
+                    self._less_than_thresh[i] = True
+                    self._greater_than_thresh[i] = False
+                else:
+                    self._less_than_thresh[i] = False
+                    self._greater_than_thresh[i] = True
+        
+        if all(self._less_than_thresh):
+            self._reset = True
 
         """ if all conditions are met, increment count """
-        if all(cond) and self._is_count:
+        if all(self._greater_than_thresh) and self._reset:
             self._count += 1
-            if self._init_movement:
-                self._is_count = False
+            self._reset = False
 
         return self._count
 
