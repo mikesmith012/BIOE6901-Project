@@ -67,7 +67,7 @@
     <property name="geometry">
      <rect>
       <x>1300</x>
-      <y>200</y>
+      <y>250</y>
       <width>500</width>
       <height>50</height>
      </rect>
@@ -85,7 +85,7 @@
     <property name="geometry">
      <rect>
       <x>1300</x>
-      <y>150</y>
+      <y>200</y>
       <width>500</width>
       <height>50</height>
      </rect>
@@ -103,7 +103,7 @@
     <property name="geometry">
      <rect>
       <x>1300</x>
-      <y>250</y>
+      <y>300</y>
       <width>500</width>
       <height>50</height>
      </rect>
@@ -114,7 +114,25 @@
      </font>
     </property>
     <property name="text">
-     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Left Arm Extensions:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string>Left Arm Extensions:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="sessiontime_label">
+    <property name="geometry">
+     <rect>
+      <x>1300</x>
+      <y>100</y>
+      <width>500</width>
+      <height>50</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Session Time:</string>
     </property>
    </widget>
   </widget>

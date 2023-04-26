@@ -30,6 +30,7 @@ class MainThread(QtCore.QThread):
 
     image = QtCore.pyqtSignal(QtGui.QImage)
     frame_rate = QtCore.pyqtSignal(str)
+    session_time = QtCore.pyqtSignal(int)
 
     """ back-end signals to handle counting reps """
     right_arm_ext = QtCore.pyqtSignal(str)
@@ -41,6 +42,8 @@ class MainThread(QtCore.QThread):
 
         self._is_recording = False
         self._tracking_movements = {}
+        self._start_time = None
+        self._session_time = None
 
     def get_frame_rate(self, frame_times):
         """
@@ -67,7 +70,7 @@ class MainThread(QtCore.QThread):
         """ get camera resolution and show in terminal (for debugging) """
         width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        print(f"Resolution: {width} x {height}")
+        print(f"Resolution: {int(width)} x {int(height)}")
 
         """ frame rate (for debugging) """
         frame_times = {"curr time": 0, "prev time": 0}
@@ -112,6 +115,10 @@ class MainThread(QtCore.QThread):
             ).scaled(int(1280 - 128 / 8), int(720 - 72 / 8), QtCore.Qt.KeepAspectRatio)
             self.image.emit(QtImg)
 
+            if self._start_time != None and self._is_recording:
+                self._session_time = int(time.time() - self._start_time)
+                self.session_time.emit(self._session_time)
+
         cv2.destroyAllWindows()
         cap.release()
 
@@ -136,9 +143,11 @@ class MainThread(QtCore.QThread):
         called from the main window thread whenever the start/stop button is pressed
         resets all movement count
         """
+        
         self._is_recording = not self._is_recording
         if self._is_recording:
             self.reset_all_count()
+            self._start_time = time.time()
 
     def reset_all_count(self):
         """
@@ -154,9 +163,9 @@ class MainThread(QtCore.QThread):
         self._right_arm_ext = Movement(
             [
                 (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER),
-                (RIGHT_ELBOW, RIGHT_SHOULDER, LEFT_SHOULDER),
+                (RIGHT_ELBOW, RIGHT_SHOULDER, RIGHT_HIP),
             ],
-            [150, 160],
+            [150, 75],
             True,
         )
         self._tracking_movements.update({"right arm ext": self._right_arm_ext})
@@ -165,9 +174,9 @@ class MainThread(QtCore.QThread):
         self._left_arm_ext = Movement(
             [
                 (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER),
-                (LEFT_ELBOW, LEFT_SHOULDER, RIGHT_SHOULDER),
+                (LEFT_ELBOW, LEFT_SHOULDER, LEFT_HIP),
             ],
-            [150, 160],
+            [150, 75],
             True,
         )
         self._tracking_movements.update({"left arm ext": self._left_arm_ext})
@@ -180,7 +189,7 @@ class MainThread(QtCore.QThread):
                 (RIGHT_KNEE, RIGHT_HIP, RIGHT_SHOULDER),
                 (LEFT_KNEE, LEFT_HIP, LEFT_SHOULDER),
             ],
-            [160, 160, 150, 150],
+            [150, 150, 150, 150],
             True,
         )
         self._tracking_movements.update({"sit to stand": self._sit_to_stand})
@@ -235,6 +244,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """ connect back-end signals """
         self._main_thread.image.connect(self.update_frame)
         self._main_thread.frame_rate.connect(self.display_frame_rate)
+        self._main_thread.session_time.connect(self.display_session_time)
 
         """ connect motion traking signals """
         self._main_thread.right_arm_ext.connect(self.display_right_arm_ext_count)
@@ -251,6 +261,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def display_frame_rate(self, frame_rate):
         self.framerate_label.setText(f"Frame Rate: {frame_rate} fps")
+
+    def display_session_time(self, time):
+        self.sessiontime_label.setText(
+            "Session Time: %d:%02d:%02d" %(time // 3600, time // 60, time % 60)
+        )
 
     def update_start_pushButton_text(self):
         is_recording = self._main_thread.get_recording_status()
