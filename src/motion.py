@@ -3,8 +3,8 @@ import mediapipe as mp
 from util import *
 
 """ motion capture parameters """
-MIN_DETECTION_CONFIDENCE = 0.6
-MIN_TRACKING_CONFIDENCE = 0.6
+MIN_DETECTION_CONFIDENCE = 0.9
+MIN_TRACKING_CONFIDENCE = 0.9
 
 """ tracking id's """
 LEFT_SHOULDER = 11

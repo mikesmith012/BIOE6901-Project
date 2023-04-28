@@ -1,4 +1,4 @@
-import cv2, sys, time
+import cv2, sys, time, os
 from PyQt5 import QtCore, QtWidgets, QtGui
 from gui import Ui_MainWindow
 
@@ -19,6 +19,10 @@ Setup
 generate gui file: pyuic5 -x ui/gui.ui -o gui.py
 
 """
+
+
+""" specify directory for test videos """
+video_path = "../../videos"
 
 
 class MainThread(QtCore.QThread):
@@ -44,6 +48,7 @@ class MainThread(QtCore.QThread):
         self._tracking_movements = {}
         self._start_time = None
         self._session_time = None
+        self._source = None
 
     def get_frame_rate(self, frame_times):
         """
@@ -62,8 +67,23 @@ class MainThread(QtCore.QThread):
         """
         self._active = True
 
-        """ open webcam """
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        """ add video files from specified directory """
+        dir = os.scandir(video_path)
+        videos = [a.name for a in dir]
+
+        """ open webcam or read video file """
+        try:
+            cap = cv2.VideoCapture(f"{video_path}/{videos[int(sys.argv[1])]}")
+            self._is_recording = True
+            self._start_time = time.time()
+            self._source = VIDEO
+        except:
+            cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+            self._source = WEBCAM
+
+        if not cap.isOpened():
+            print("error opening video stream or file")
+
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT)
 
@@ -86,9 +106,10 @@ class MainThread(QtCore.QThread):
 
         while cap.isOpened() and self._active:
             ret, img = cap.read()
-            if ret == False:
-                print("can't connect to camera :(")
-                self.stop()
+
+            """ if camera not accessed or end of video """
+            if ret == False or img is None:
+                return
 
             """ get frame dimensions """
             height, width, _ = img.shape
@@ -108,13 +129,18 @@ class MainThread(QtCore.QThread):
 
                 self.count_movements()
 
-            """ show detected elements on screen """
-            img = cv2.cvtColor(cv2.flip(img, 1), cv2.COLOR_BGR2RGB)
+            """ flip image is accessed from webcam """
+            if self._source == WEBCAM:
+                img = cv2.flip(img, 1)
+
+            """ emit image signal to the main-window thread to be displayed """
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             QtImg = QtGui.QImage(
                 img.data, width, height, QtGui.QImage.Format_RGB888
             ).scaled(int(1280 - 128 / 8), int(720 - 72 / 8), QtCore.Qt.KeepAspectRatio)
             self.image.emit(QtImg)
 
+            """ get the time since start of session """
             if self._start_time != None and self._is_recording:
                 self._session_time = int(time.time() - self._start_time)
                 self.session_time.emit(self._session_time)
@@ -137,13 +163,20 @@ class MainThread(QtCore.QThread):
         """
         return self._is_recording
 
+    def get_input_source(self):
+        """
+        gets current input source (video or webcam)
+
+        """
+        return self._source
+
     def start_stop_recording(self):
         """
         starts and stops recording
         called from the main window thread whenever the start/stop button is pressed
         resets all movement count
         """
-        
+
         self._is_recording = not self._is_recording
         if self._is_recording:
             self.reset_all_count()
@@ -162,10 +195,12 @@ class MainThread(QtCore.QThread):
         """add right arm extensions"""
         self._right_arm_ext = Movement(
             [
-                (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER),
-                (RIGHT_ELBOW, RIGHT_SHOULDER, RIGHT_HIP),
+                (RIGHT_WRIST, RIGHT_ELBOW, RIGHT_SHOULDER, 120),
+                (RIGHT_ELBOW, RIGHT_SHOULDER, RIGHT_HIP, 60),
             ],
-            [150, 75],
+            [
+                (RIGHT_ELBOW, RIGHT_SHOULDER, ">", 0.1),
+            ],
             True,
         )
         self._tracking_movements.update({"right arm ext": self._right_arm_ext})
@@ -173,10 +208,12 @@ class MainThread(QtCore.QThread):
         """ add left arm extensions """
         self._left_arm_ext = Movement(
             [
-                (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER),
-                (LEFT_ELBOW, LEFT_SHOULDER, LEFT_HIP),
+                (LEFT_WRIST, LEFT_ELBOW, LEFT_SHOULDER, 120),
+                (LEFT_ELBOW, LEFT_SHOULDER, LEFT_HIP, 60),
             ],
-            [150, 75],
+            [
+                (LEFT_ELBOW, LEFT_SHOULDER, ">", 0.1),
+            ],
             True,
         )
         self._tracking_movements.update({"left arm ext": self._left_arm_ext})
@@ -184,12 +221,15 @@ class MainThread(QtCore.QThread):
         """ add sit to stand movement """
         self._sit_to_stand = Movement(
             [
-                (RIGHT_ANKLE, RIGHT_KNEE, RIGHT_HIP),
-                (LEFT_ANKLE, LEFT_KNEE, LEFT_HIP),
-                (RIGHT_KNEE, RIGHT_HIP, RIGHT_SHOULDER),
-                (LEFT_KNEE, LEFT_HIP, LEFT_SHOULDER),
+                (RIGHT_ANKLE, RIGHT_KNEE, RIGHT_HIP, 150),
+                (LEFT_ANKLE, LEFT_KNEE, LEFT_HIP, 150),
+                (RIGHT_KNEE, RIGHT_HIP, RIGHT_SHOULDER, 150),
+                (LEFT_KNEE, LEFT_HIP, LEFT_SHOULDER, 150),
             ],
-            [150, 150, 150, 150],
+            [
+                (LEFT_KNEE, LEFT_HIP, ">", 0.15),
+                (RIGHT_KNEE, RIGHT_HIP, ">", 0.15),
+            ],
             True,
         )
         self._tracking_movements.update({"sit to stand": self._sit_to_stand})
@@ -259,12 +299,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def update_frame(self, img):
         self.img_label.setPixmap(QtGui.QPixmap(img))
 
+        if self._main_thread.get_input_source() == VIDEO:
+            self.start_pushButton.setEnabled(False)
+
     def display_frame_rate(self, frame_rate):
         self.framerate_label.setText(f"Frame Rate: {frame_rate} fps")
 
     def display_session_time(self, time):
         self.sessiontime_label.setText(
-            "Session Time: %d:%02d:%02d" %(time // 3600, time // 60, time % 60)
+            "Session Time: %d:%02d:%02d" % (time // 3600, time // 60, time % 60)
         )
 
     def update_start_pushButton_text(self):

@@ -14,7 +14,12 @@ FRAME_HEIGHT = 2160
 FRAME_ORIGIN = 0
 
 INIT = (0, 0)
+
 X = 0
 Y = 1
+
 MIN = 0.05
 MAX = 0.95
+
+VIDEO = 0
+WEBCAM = 1
