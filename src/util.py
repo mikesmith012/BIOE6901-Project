@@ -18,8 +18,10 @@ INIT = (0, 0)
 X = 0
 Y = 1
 
-MIN = 0.05
-MAX = 0.95
+MIN = 0.02
+MAX = 0.98
+
+VIS = 0.5
 
 VIDEO = 0
 WEBCAM = 1

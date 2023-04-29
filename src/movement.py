@@ -1,4 +1,4 @@
-import math
+import math, cv2
 from util import *
 
 
@@ -8,17 +8,23 @@ class Movement:
 
     """
 
-    def __init__(self, points, positions, is_tracking):
+    def __init__(self, points, positions, is_tracking, ignore_vis=False, debug=False):
         """
         points: a list containing tuples of three points and the threshold angle
         positions: a list containing pairs of point with thresholds for relative positioning
         is_tracking: a boolean to specify whether tracking is enabled
+
+        ignore_vis: a boolean to ignore visibility thresholds
+            set to "True" if tracking full-body / compound movements
+        debug: a boolean to allow program to overlay angle values on frame
 
         """
 
         self._points = points
         self._positions = positions
         self._is_tracking = is_tracking
+        self._ignore_vis = ignore_vis
+        self._debug = debug
 
         self._reset = False
         self._angles = []
@@ -63,11 +69,12 @@ class Movement:
         """
         return self._is_tracking
 
-    def count_movement(self, landmarks):
+    def count_movement(self, landmarks, pixels, img, source):
         """
         count the number of reps for the movement
 
         """
+
         for angle in self._angles:
             angle["prev"] = angle["curr"]
 
@@ -78,6 +85,10 @@ class Movement:
                     landmarks[self._points[i][1]],
                     landmarks[self._points[i][2]],
                 )
+
+                """ if debug mode, annotate video frames with angle values """
+                if self._debug:
+                    img = self.annotate(img, source, pixels, angle, i)
 
             """ check the relative positions of specified points """
             for i, pos in enumerate(self._positions):
@@ -121,10 +132,10 @@ class Movement:
             and all(self._position_conditions)
             and self._reset
         ):
-                self._count += 1
-                self._reset = False
+            self._count += 1
+            self._reset = False
 
-        return self._count
+        return img, self._count
 
     def find_angle(self, p1, p2, p3):
         """
@@ -134,9 +145,16 @@ class Movement:
         note: p2 must be the common point between the two lines
 
         """
-        _, x1, y1 = p1
-        _, x2, y2 = p2
-        _, x3, y3 = p3
+        _, x1, y1, v1 = p1
+        _, x2, y2, v2 = p2
+        _, x3, y3, v3 = p3
+
+        """
+        check that the visibility of the points is above the visibility threshold
+        otherwise, ignore points as this can lead to program guessing position of points
+
+        """
+        c0 = [True] if self._ignore_vis else [v1 > VIS, v2 > VIS, v3 > VIS]
 
         """
         check that points are not too close to the edge of the frame
@@ -147,7 +165,7 @@ class Movement:
         c2 = [x2 > MIN, x2 < MAX, y2 > MIN, y2 < MAX]
         c3 = [x3 > MIN, x3 < MAX, y3 > MIN, y3 < MAX]
 
-        if all(c1) and all(c2) and all(c3):
+        if all(c0) and all(c1) and all(c2) and all(c3):
             angle_rad = math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2)
             angle_deg = abs(math.degrees(angle_rad))
         else:
@@ -164,3 +182,41 @@ class Movement:
 
     def get_y_position(self, pos, landmarks):
         return landmarks[pos][2]
+
+    def annotate(self, img, source, pixels, angle, index):
+        """
+        overlays angle values onto video frames
+
+        """
+        h, w, _ = img.shape
+
+        colour = RED if angle["curr"] < 0 else GREEN
+
+        if source == WEBCAM:
+            img = cv2.flip(img, 1)
+            cv2.putText(
+                img,
+                str(round(angle["curr"])),
+                (
+                    w - pixels[self._points[index][1]][X],
+                    pixels[self._points[index][1]][Y],
+                ),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                colour,
+                2,
+            )
+            img = cv2.flip(img, 1)
+
+        else:
+            cv2.putText(
+                img,
+                str(round(angle["curr"])),
+                pixels[self._points[index][1]],
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.8,
+                colour,
+                2,
+            )
+
+        return img

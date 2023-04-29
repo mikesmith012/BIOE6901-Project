@@ -68,8 +68,7 @@ class Motion:
         self._landmark_x_max = -1
 
         adjust = [0, 0]
-        landmark_x = []
-        landmark_y = []
+        lm_pixels = []
 
         """ 
         crop frame based on the position of the detected person 
@@ -100,23 +99,25 @@ class Motion:
 
             """
             for id, landmark in enumerate(results.pose_landmarks.landmark):
-                """apply positional adjustment for the cropped frame"""
+
+                """ apply positional adjustment for the cropped frame """
                 if cropped:
                     landmark.x = landmark.x + adjust[X]
                     landmark.y = landmark.y + adjust[Y]
 
                 """ append raw co-ordinate values (ranges from 0 to 1) """
-                landmarks.append((id, landmark.x, landmark.y))
+                landmarks.append((id, landmark.x, landmark.y, landmark.visibility))
+
+                """ for testing visibility factor """
+                # if id == RIGHT_WRIST:
+                    # print(f"{landmark.visibility}")
 
                 """ 
                 calculate co-ordinate values in pixels to be used later for 
                 drawing the bounding box and to crop the next frame
                 
                 """
-                cX = int(landmark.x * width)
-                cY = int(landmark.y * height)
-                landmark_x.append(cX)
-                landmark_y.append(cY)
+                lm_pixels.append((int(landmark.x * width), int(landmark.y * height)))
 
                 """ highlight important points """
                 wrists = id == LEFT_WRIST or id == RIGHT_WRIST
@@ -126,7 +127,13 @@ class Motion:
                 knees = id == LEFT_KNEE or id == RIGHT_KNEE
                 ankles = id == LEFT_ANKLE or id == RIGHT_ANKLE
                 if any([wrists, elbows, shoulders, hips, knees, ankles]):
-                    cv2.circle(img, (cX, cY), 10, MAGENTA, cv2.FILLED)
+                    cv2.circle(
+                        img,
+                        (lm_pixels[-1][X], lm_pixels[-1][Y]),
+                        8,
+                        YELLOW,
+                        cv2.FILLED,
+                    )
 
             """ draw connections between detected points """
             self._pose_param_dict["mp draw"].draw_landmarks(
@@ -136,16 +143,24 @@ class Motion:
             )
 
             """ draw the bounding box """
-            if len(landmark_x) > 0 and len(landmark_y) > 0:
-                self._landmark_x_min = min(landmark_x) - int(0.06 * width)
-                self._landmark_x_max = max(landmark_x) + int(0.06 * width)
-                self._landmark_y_min = min(landmark_y) - int(0.10 * height)
-                self._landmark_y_max = max(landmark_y) + int(0.08 * height)
+            if len(lm_pixels) > 0:
+                self._landmark_x_min = min([lm[X] for lm in lm_pixels]) - int(
+                    0.06 * width
+                )
+                self._landmark_x_max = max([lm[X] for lm in lm_pixels]) + int(
+                    0.06 * width
+                )
+                self._landmark_y_min = min([lm[Y] for lm in lm_pixels]) - int(
+                    0.10 * height
+                )
+                self._landmark_y_max = max([lm[Y] for lm in lm_pixels]) + int(
+                    0.08 * height
+                )
                 cv2.rectangle(
                     img,
                     (self._landmark_x_min, self._landmark_y_min),
                     (self._landmark_x_max, self._landmark_y_max),
-                    MAGENTA,
+                    BLUE,
                     3,
                 )
                 cropped = True
@@ -153,4 +168,4 @@ class Motion:
                 cropped = False
 
         """ returns image frame and cropped status """
-        return img, cropped
+        return img, cropped, lm_pixels.copy()
