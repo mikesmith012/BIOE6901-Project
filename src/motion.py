@@ -1,24 +1,5 @@
-import cv2
+import cv2, util
 import mediapipe as mp
-from util import *
-
-""" motion capture parameters """
-MIN_DETECTION_CONFIDENCE = 0.9
-MIN_TRACKING_CONFIDENCE = 0.9
-
-""" tracking id's """
-LEFT_SHOULDER = 11
-RIGHT_SHOULDER = 12
-LEFT_ELBOW = 13
-RIGHT_ELBOW = 14
-LEFT_WRIST = 15
-RIGHT_WRIST = 16
-LEFT_HIP = 23
-RIGHT_HIP = 24
-LEFT_KNEE = 25
-RIGHT_KNEE = 26
-LEFT_ANKLE = 27
-RIGHT_ANKLE = 28
 
 
 class Motion:
@@ -27,6 +8,27 @@ class Motion:
 
     """
 
+    """ motion capture parameters """
+    min_detection_confidence = 0.9
+    min_tracking_confidence = 0.9
+
+    """ tracking id's """
+    left_shoulder = 11
+    right_shoulder = 12
+    left_elbow = 13
+    right_elbow = 14
+    left_wrist = 15
+    right_wrist = 16
+    left_hip = 23
+    right_hip = 24
+    left_knee = 25
+    right_knee = 26
+    left_ankle = 27
+    right_ankle = 28
+
+    crop = {"start": util.INIT, "end": util.INIT}
+    cropped = False
+
     def __init__(
         self,
         static_image_mode=False,
@@ -34,8 +36,8 @@ class Motion:
         smooth_landmarks=True,
         enable_segmentation=False,
         smooth_segmentation=True,
-        min_detection_confidence=MIN_DETECTION_CONFIDENCE,
-        min_tracking_confidence=MIN_TRACKING_CONFIDENCE,
+        min_detection_confidence=min_detection_confidence,
+        min_tracking_confidence=min_tracking_confidence,
     ):
         self._static_image_mode = static_image_mode
         self._model_complexity = model_complexity
@@ -59,7 +61,7 @@ class Motion:
             min_tracking_confidence=self._min_tracking_confidence,
         )
 
-    def track_motion(self, img, landmarks, crop, cropped):
+    def track_motion(self, img, landmarks):
         """
         used for tracking motion within a bounding box
 
@@ -76,15 +78,15 @@ class Motion:
         
         """
         height, width, _ = img.shape
-        if cropped:
+        if self.cropped:
             img_crop = img[
-                crop["start"][Y] : crop["end"][Y],
-                crop["start"][X] : crop["end"][X],
+                self.crop["start"][util.Y] : self.crop["end"][util.Y],
+                self.crop["start"][util.X] : self.crop["end"][util.X],
             ]
 
             """ calculate positional adjustment needed for the cropped frame """
-            adjust[X] = crop["start"][X] / width
-            adjust[Y] = crop["start"][Y] / height
+            adjust[util.X] = self.crop["start"][util.X] / width
+            adjust[util.Y] = self.crop["start"][util.Y] / height
         else:
             img_crop = img
 
@@ -99,18 +101,13 @@ class Motion:
 
             """
             for id, landmark in enumerate(results.pose_landmarks.landmark):
-
-                """ apply positional adjustment for the cropped frame """
-                if cropped:
-                    landmark.x = landmark.x + adjust[X]
-                    landmark.y = landmark.y + adjust[Y]
+                """apply positional adjustment for the cropped frame"""
+                if self.cropped:
+                    landmark.x = landmark.x + adjust[util.X]
+                    landmark.y = landmark.y + adjust[util.Y]
 
                 """ append raw co-ordinate values (ranges from 0 to 1) """
                 landmarks.append((id, landmark.x, landmark.y, landmark.visibility))
-
-                """ for testing visibility factor """
-                # if id == RIGHT_WRIST:
-                    # print(f"{landmark.visibility}")
 
                 """ 
                 calculate co-ordinate values in pixels to be used later for 
@@ -120,20 +117,16 @@ class Motion:
                 lm_pixels.append((int(landmark.x * width), int(landmark.y * height)))
 
                 """ highlight important points """
-                wrists = id == LEFT_WRIST or id == RIGHT_WRIST
-                elbows = id == LEFT_ELBOW or id == RIGHT_ELBOW
-                shoulders = id == LEFT_SHOULDER or id == RIGHT_SHOULDER
-                hips = id == LEFT_HIP or id == RIGHT_HIP
-                knees = id == LEFT_KNEE or id == RIGHT_KNEE
-                ankles = id == LEFT_ANKLE or id == RIGHT_ANKLE
+                wrists = id == self.left_wrist or id == self.right_wrist
+                elbows = id == self.left_elbow or id == self.right_elbow
+                shoulders = id == self.left_shoulder or id == self.right_shoulder
+                hips = id == self.left_hip or id == self.right_hip
+                knees = id == self.left_knee or id == self.right_knee
+                ankles = id == self.left_ankle or id == self.right_ankle
+
                 if any([wrists, elbows, shoulders, hips, knees, ankles]):
-                    cv2.circle(
-                        img,
-                        (lm_pixels[-1][X], lm_pixels[-1][Y]),
-                        8,
-                        YELLOW,
-                        cv2.FILLED,
-                    )
+                    x, y = lm_pixels[-1][util.X], lm_pixels[-1][util.Y]
+                    cv2.circle(img, (x, y), 8, util.YELLOW, cv2.FILLED)
 
             """ draw connections between detected points """
             self._pose_param_dict["mp draw"].draw_landmarks(
@@ -144,28 +137,27 @@ class Motion:
 
             """ draw the bounding box """
             if len(lm_pixels) > 0:
-                self._landmark_x_min = min([lm[X] for lm in lm_pixels]) - int(
+                self._landmark_x_min = min([lm[util.X] for lm in lm_pixels]) - int(
                     0.06 * width
                 )
-                self._landmark_x_max = max([lm[X] for lm in lm_pixels]) + int(
+                self._landmark_x_max = max([lm[util.X] for lm in lm_pixels]) + int(
                     0.06 * width
                 )
-                self._landmark_y_min = min([lm[Y] for lm in lm_pixels]) - int(
+                self._landmark_y_min = min([lm[util.Y] for lm in lm_pixels]) - int(
                     0.10 * height
                 )
-                self._landmark_y_max = max([lm[Y] for lm in lm_pixels]) + int(
+                self._landmark_y_max = max([lm[util.Y] for lm in lm_pixels]) + int(
                     0.08 * height
                 )
-                cv2.rectangle(
-                    img,
-                    (self._landmark_x_min, self._landmark_y_min),
-                    (self._landmark_x_max, self._landmark_y_max),
-                    BLUE,
-                    3,
-                )
-                cropped = True
-            else:
-                cropped = False
 
-        """ returns image frame and cropped status """
-        return img, cropped, lm_pixels.copy()
+                x_min, y_min = self._landmark_x_min, self._landmark_y_min
+                x_max, y_max = self._landmark_x_max, self._landmark_y_max
+                cv2.rectangle(img, (x_min, y_min), (x_max, y_max), util.BLUE, 3)
+
+                self.cropped = True
+
+            else:
+                self.cropped = False
+
+        """ returns image frame and landmark pixel co-ordinates """
+        return img, lm_pixels.copy()

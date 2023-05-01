@@ -13,15 +13,25 @@ FRAME_WIDTH = 3840
 FRAME_HEIGHT = 2160
 FRAME_ORIGIN = 0
 
+""" init tuple (used for bounding box) """
 INIT = (0, 0)
 
+""" co-ordinate definitions """
 X = 0
 Y = 1
 
+""" positional min and max thresholds """
 MIN = 0.02
 MAX = 0.98
 
+""" visibility threshold """
 VIS = 0.5
 
+""" input source definitions """
 VIDEO = 0
 WEBCAM = 1
+
+""" supported files """
+FILE_NOT_SUPPORTED = -1
+CSV = 0
+MP4 = 1

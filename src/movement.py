@@ -1,5 +1,4 @@
-import math, cv2
-from util import *
+import math, cv2, util
 
 
 class Movement:
@@ -137,6 +136,9 @@ class Movement:
 
         return img, self._count
 
+    def get_count(self):
+        return self._count
+
     def find_angle(self, p1, p2, p3):
         """
         generic function for calutating the angle between two lines
@@ -154,16 +156,19 @@ class Movement:
         otherwise, ignore points as this can lead to program guessing position of points
 
         """
-        c0 = [True] if self._ignore_vis else [v1 > VIS, v2 > VIS, v3 > VIS]
+        if self._ignore_vis:
+            c0 = [True]
+        else:
+            c0 = [v1 > util.VIS, v2 > util.VIS, v3 > util.VIS]
 
         """
         check that points are not too close to the edge of the frame
         otherwise, ignore points as this can lead to inaccurate angle values
 
         """
-        c1 = [x1 > MIN, x1 < MAX, y1 > MIN, y1 < MAX]
-        c2 = [x2 > MIN, x2 < MAX, y2 > MIN, y2 < MAX]
-        c3 = [x3 > MIN, x3 < MAX, y3 > MIN, y3 < MAX]
+        c1 = [x1 > util.MIN, x1 < util.MAX, y1 > util.MIN, y1 < util.MAX]
+        c2 = [x2 > util.MIN, x2 < util.MAX, y2 > util.MIN, y2 < util.MAX]
+        c3 = [x3 > util.MIN, x3 < util.MAX, y3 > util.MIN, y3 < util.MAX]
 
         if all(c0) and all(c1) and all(c2) and all(c3):
             angle_rad = math.atan2(y3 - y2, x3 - x2) - math.atan2(y1 - y2, x1 - x2)
@@ -189,34 +194,21 @@ class Movement:
 
         """
         h, w, _ = img.shape
+        angle = round(angle["curr"])
+        colour = util.RED if angle < 0 else util.GREEN
+        font = cv2.FONT_HERSHEY_SIMPLEX
 
-        colour = RED if angle["curr"] < 0 else GREEN
-
-        if source == WEBCAM:
+        if source == util.WEBCAM:
             img = cv2.flip(img, 1)
-            cv2.putText(
-                img,
-                str(round(angle["curr"])),
-                (
-                    w - pixels[self._points[index][1]][X],
-                    pixels[self._points[index][1]][Y],
-                ),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
-                colour,
-                2,
-            )
+
+            x = w - pixels[self._points[index][1]][util.X]
+            y = pixels[self._points[index][1]][util.Y]
+
+            cv2.putText(img, str(angle), (x, y), font, 0.8, colour, 2)
             img = cv2.flip(img, 1)
 
         else:
-            cv2.putText(
-                img,
-                str(round(angle["curr"])),
-                pixels[self._points[index][1]],
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.8,
-                colour,
-                2,
-            )
+            x, y = pixels[self._points[index][1]]
+            cv2.putText(img, str(angle), (x, y), font, 0.8, colour, 2)
 
         return img
