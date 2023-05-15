@@ -10,7 +10,7 @@ class Motion:
 
     """ motion capture parameters """
     min_detection_confidence = 0.9
-    min_tracking_confidence = 0.9
+    min_tracking_confidence = 0.5
 
     """ tracking id's """
     left_shoulder = 11
@@ -101,7 +101,10 @@ class Motion:
 
             """
             for id, landmark in enumerate(results.pose_landmarks.landmark):
-                """apply positional adjustment for the cropped frame"""
+                """
+                apply positional adjustment for the cropped frame
+
+                """
                 if self.cropped:
                     landmark.x = landmark.x + adjust[util.X]
                     landmark.y = landmark.y + adjust[util.Y]
@@ -138,16 +141,16 @@ class Motion:
             """ draw the bounding box """
             if len(lm_pixels) > 0:
                 self._landmark_x_min = min([lm[util.X] for lm in lm_pixels]) - int(
-                    0.06 * width
+                    0.03 * width
                 )
                 self._landmark_x_max = max([lm[util.X] for lm in lm_pixels]) + int(
-                    0.06 * width
+                    0.03 * width
                 )
                 self._landmark_y_min = min([lm[util.Y] for lm in lm_pixels]) - int(
-                    0.10 * height
+                    0.05 * height
                 )
                 self._landmark_y_max = max([lm[util.Y] for lm in lm_pixels]) + int(
-                    0.08 * height
+                    0.04 * height
                 )
 
                 x_min, y_min = self._landmark_x_min, self._landmark_y_min

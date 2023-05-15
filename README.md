@@ -1,5 +1,7 @@
 # BIOE6901-Project
 
+##### Works with Python version 3.10
+
 ### Setup (Mac / Linux)
 1.  Create python virtual environment: `python3 -m venv venv`
 2.  Activate virtual environment: `source venv/bin/activate`
@@ -13,3 +15,5 @@
 3.  Install dependencies: `py -m pip install -r req.txt`
 4.  Run the program: `py src/main.py`
 5.  To deactivate virtual environment: `deactivate`
+
+##### Generate GUI File: `pyuic5 -x ui/gui.ui -o gui.py`

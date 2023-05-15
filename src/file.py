@@ -7,19 +7,26 @@ class File:
 
     """
 
-    """ default file path """
-    file_path = "../files"
+    """ default file path (in sub-dir "files" located in current dir) """
+    file_path = "./files"
     supported_files = {util.CSV: ".csv", util.MP4: ".mp4"}
 
-    def __init__(self, save=False):
+    def __init__(self, save=True):
         """
-        save_file: a boolean to specify whether or not to generate a file
+        save: a boolean to specify whether or not to generate a file
 
         """
         self._save_file = save
 
         self._data = []
         self._prev_time = 0
+
+    def set_save_status(self, save):
+        """
+        set whether or not to generate a file
+
+        """
+        self._save_file = save
 
     def get_file_type(self, filename):
         """
@@ -31,8 +38,11 @@ class File:
             if file_ext in filename:
                 return file_type
 
+        if filename == "":
+            return
+
         return util.FILE_NOT_SUPPORTED
-    
+
     def read(self):
         """
         not implemented yet
@@ -45,30 +55,26 @@ class File:
         takes the parsed data and writes it to a csv file
 
         """
-        if not self._save_file:
+        if not self._save_file or len(self._data) == 0:
             return
 
-        try:
-            """create a directory to store the saved files"""
-            if not os.path.exists(self.file_path):
-                os.mkdir(self.file_path)
+        """ create a directory to store the saved files """
+        if not os.path.exists(self.file_path):
+            os.mkdir(self.file_path)
 
-            """ make sure there are no existing files with duplicate names """
-            dir = os.scandir(self.file_path)
-            files = [a.name for a in dir]
-            filename = self.create_filename()
-            print(filename) if filename not in files else print("file already exists")
+        """ make sure there are no existing files with duplicate names """
+        dir = os.scandir(self.file_path)
+        files = [a.name for a in dir]
+        fname = self.create_filename()
+        print(f"saved file: {fname}") if fname not in files else print("file exists")
 
-            """ create a csv file and write to it"""
-            with open(filename, "w", newline="") as new_file:
-                writer = csv.DictWriter(new_file, fieldnames=self._keys)
-                writer.writeheader()
+        """ create a csv file and write to it """
+        with open(fname, "w", newline="") as new_file:
+            writer = csv.DictWriter(new_file, fieldnames=self._keys)
+            writer.writeheader()
 
-                for d in self._data:
-                    writer.writerow(d)
-
-        except:
-            print("unable to generate csv file")
+            for d in self._data:
+                writer.writerow(d)
 
     def create_filename(self):
         """

@@ -7,7 +7,7 @@ from motion import Motion
 from file import File
 
 """ 
-works with python version 3.10
+Works with Python version 3.10
 
 Setup (Mac / Linux)
 1.  Create python virtual environment: `python3 -m venv venv`
@@ -23,7 +23,7 @@ Setup (Windows)
 4.  Run the program: `py src/main.py`
 5.  To deactivate virtual environment: `deactivate`
 
-generate gui file: `pyuic5 -x ui/gui.ui -o gui.py`
+Generate GUI File: `pyuic5 -x ui/gui.ui -o gui.py`
 
 """
 
@@ -49,6 +49,8 @@ class MainThread(QtCore.QThread):
 
         self._cap = None
         self._is_recording = False
+        self._is_paused = False
+        self._pause_time = 0
         self._tracking_movements = {}
         self._start_time = None
         self._stop_time = None
@@ -57,6 +59,7 @@ class MainThread(QtCore.QThread):
         self._delay = 0
         self._read_file = None
         self._write_file = None
+        self._save_file = True
 
     def run(self):
         """
@@ -64,7 +67,7 @@ class MainThread(QtCore.QThread):
 
         """
         self._active = True
-        self._cap = self.get_video_capture(self._cap)
+        self.start_video_capture()
 
         """ frame rate (for debugging) """
         frame_times = {"curr time": 0, "prev time": 0}
@@ -81,9 +84,24 @@ class MainThread(QtCore.QThread):
             ret, self._img = self._cap.read()
 
             """ if camera not accessed or end of video """
-            if (ret == False or self._img is None) and self._is_recording:
+            if ret == False or self._img is None:
+                """
+                if error accessing camera or end of video and program is not recording:
+                - keep iterating through the main while loop until an image signal is received
+
+                """
+                if not self._is_recording:
+                    continue
+
+                """ 
+                if error accessing camera or end of video and program was recording:
+                - stop the recording
+                - wait until recording starts again (by playing another video) or
+                - wait until user switches back to the webcam
+                
+                """
                 self.start_stop_recording()
-                while not self._is_recording:
+                while not self._is_recording and self._source != util.WEBCAM:
                     pass
                 continue
 
@@ -96,17 +114,19 @@ class MainThread(QtCore.QThread):
             self.frame_rate.emit(frame_rate)
 
             """ get the time since start of session """
-            if self._start_time is not None and self._is_recording:
-                self._session_time = time.time() - self._start_time
+            if self._start_time is not None and self._is_recording and not self._is_paused:
+                self._session_time = time.time() - self._start_time - self._pause_time
                 self.session_time.emit(int(self._session_time))
 
             """ track motion and count movements (only when recording) """
-            if self._is_recording:
+            if self._is_recording and not self._is_paused:
                 self._pose_landmarks = []
                 self._img, self._pixels = self._motion.track_motion(
                     self._img,
                     self._pose_landmarks,
                 )
+
+                """ count the number of reps for each movement """
                 self.count_movements()
 
                 """ parse movement data to file object """
@@ -133,11 +153,14 @@ class MainThread(QtCore.QThread):
             time.sleep(self._delay)
 
             """ pause video if stop button is pressed """
-            while self._source == util.VIDEO and not self._is_recording:
+            while not self._is_recording and self._source != util.WEBCAM:
                 pass
 
+        """ handles program exit """
         cv2.destroyAllWindows()
         self._cap.release()
+
+        print("exit")
 
     def stop(self):
         """
@@ -147,16 +170,25 @@ class MainThread(QtCore.QThread):
         self._active = False
         self.wait()
 
+    def start_video_capture(self):
+        """
+        starts video capture from webcam by default
+
+        """
+        if self._source == util.WEBCAM:
+            return
+
+        self._cap = self.get_video_capture(self._cap)
+
     def get_video_capture(self, cap, name=None):
         """
         get video capture from webcam or video file
 
         """
-        
         if name is not None:
             cap = cv2.VideoCapture(name)
             self._source = util.VIDEO
-            self.get_frame_details(cap, "video")
+            self.set_frame_dimensions(cap, "video")
 
             if not self._is_recording:
                 self.start_stop_recording()
@@ -172,7 +204,10 @@ class MainThread(QtCore.QThread):
 
         cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
         self._source = util.WEBCAM
-        self.get_frame_details(cap, "webcam")
+        self.set_frame_dimensions(cap, "webcam")
+
+        if self._is_recording:
+            self.start_stop_recording()
 
         if cap.isOpened():
             return cap
@@ -180,9 +215,9 @@ class MainThread(QtCore.QThread):
         print("error opening video stream or file")
         return None
 
-    def get_frame_details(self, cap, source):
+    def set_frame_dimensions(self, cap, source):
         """
-        get camera or video resolution and show in terminal (for debugging)
+        set the camera or video resolution and show in terminal (for debugging)
 
         """
         if cap is not None:
@@ -195,17 +230,29 @@ class MainThread(QtCore.QThread):
 
     def get_file(self, name):
         """
-        read the file specified by the user
+        get the file specified by the user
 
         """
         self._read_file = File()
-        if self._read_file.get_file_type(name) == util.MP4:
-            print(name)
+        file_type = self._read_file.get_file_type(name)
+
+        """ check that the file is valid and supported by program """
+        if file_type == util.MP4:
             self._cap = self.get_video_capture(self._cap, name=name)
-        elif self._read_file.get_file_type(name) == util.CSV:
-            print(name)
-        else:
-            print("file not supported")
+            print(f'video file: "{name}"')
+
+        elif file_type == util.CSV:
+            print(f'csv file: "{name}"')
+
+        elif file_type == util.FILE_NOT_SUPPORTED:
+            invalid_file_msg_box = QtWidgets.QMessageBox()
+            invalid_file_msg_box.setWindowTitle("File Not Supported")
+            invalid_file_msg_box.setIcon(QtWidgets.QMessageBox.Warning)
+            invalid_file_msg_box.setText(
+                "The file you have chosen is not supported by the program.\n\n"
+                + "Please choose a different file and try again."
+            )
+            invalid_file_msg_box.exec()
 
     def get_frame_rate(self, frame_times):
         """
@@ -222,6 +269,7 @@ class MainThread(QtCore.QThread):
         gets current recording status
         returns True if recording, else returns False
         used in the main window thread to update gui
+
         """
         return self._is_recording
 
@@ -241,11 +289,13 @@ class MainThread(QtCore.QThread):
         self._is_recording = not self._is_recording
 
         if self._is_recording:
-            """create new file object"""
-            self._write_file = File()
+            """
+            create new file object
 
-            """ handles pausing for videos """
-            if self._stop_time is not None and self._source == util.VIDEO:
+            """
+            self._write_file = File(save=self._save_file)
+
+            if self._stop_time is not None and (self._source == util.VIDEO or self._is_paused):
                 self._start_time = time.time() - (self._stop_time - self._start_time)
             else:
                 self._start_time = time.time()
@@ -260,17 +310,38 @@ class MainThread(QtCore.QThread):
             """ write to csv file """
             self._write_file.write()
 
+    def pause(self):
+        self._is_paused = not self._is_paused
+        if self._is_paused:
+            self._pause_start_time = time.time()
+        else:
+            self._pause_stop_time = time.time()
+            self._pause_time += self._pause_stop_time - self._pause_start_time
+
+    def get_pause_status(self):
+        return self._is_paused
+    
+    def update_name_id(self, name_id):
+        print(name_id)
+
     def reset_all_count(self):
         """
         resets count for all movements
         make sure to update when adding new movements
+
         """
+        self._pause_time = 0
+        self._is_paused = False
+
         self._right_arm_ext.reset_count()
         self._left_arm_ext.reset_count()
         self._sit_to_stand.reset_count()
 
     def add_movements(self):
-        """add right arm extensions"""
+        """
+        add right arm extensions
+
+        """
         self._right_arm_ext = Movement(
             [
                 (Motion.right_wrist, Motion.right_elbow, Motion.left_shoulder, 130),
@@ -284,7 +355,10 @@ class MainThread(QtCore.QThread):
         )
         self._tracking_movements.update({"right arm ext": self._right_arm_ext})
 
-        """ add left arm extensions """
+        """ 
+        add left arm extensions 
+        
+        """
         self._left_arm_ext = Movement(
             [
                 (Motion.left_wrist, Motion.left_elbow, Motion.left_shoulder, 130),
@@ -298,7 +372,10 @@ class MainThread(QtCore.QThread):
         )
         self._tracking_movements.update({"left arm ext": self._left_arm_ext})
 
-        """ add sit to stand movement """
+        """ 
+        add sit to stand movement 
+        
+        """
         self._sit_to_stand = Movement(
             [
                 (Motion.right_ankle, Motion.right_knee, Motion.right_hip, 150),
@@ -317,7 +394,10 @@ class MainThread(QtCore.QThread):
         self._tracking_movements.update({"sit to stand": self._sit_to_stand})
 
     def count_movements(self):
-        """right arm extensions (if enabled)"""
+        """
+        right arm extensions (if enabled)
+
+        """
         if self._right_arm_ext.get_tracking_status():
             self._img, self._right_arm_ext_count = self._right_arm_ext.count_movement(
                 self._pose_landmarks,
@@ -327,7 +407,10 @@ class MainThread(QtCore.QThread):
             )
             self.right_arm_ext.emit(str(self._right_arm_ext_count))
 
-        """ left arm extensions (if enabled) """
+        """ 
+        left arm extensions (if enabled) 
+        
+        """
         if self._left_arm_ext.get_tracking_status():
             self._img, self._left_arm_ext_count = self._left_arm_ext.count_movement(
                 self._pose_landmarks,
@@ -337,7 +420,10 @@ class MainThread(QtCore.QThread):
             )
             self.left_arm_ext.emit(str(self._left_arm_ext_count))
 
-        """ sit to stand (if enabled) """
+        """ 
+        sit to stand (if enabled) 
+        
+        """
         if self._sit_to_stand.get_tracking_status():
             self._img, self._sit_to_stand_count = self._sit_to_stand.count_movement(
                 self._pose_landmarks,
@@ -345,15 +431,23 @@ class MainThread(QtCore.QThread):
                 self._img,
                 self._source,
             )
-            # print(self._sit_to_stand_count)
             self.sit_to_stand.emit(str(self._sit_to_stand_count))
 
     def get_tracking_movements(self):
         """
         returns a dictionary containing all movements
         called by the main-window thread to update gui
+
         """
         return self._tracking_movements.copy()
+
+    def generate_file(self, generate):
+        """
+        callback function for the main-window thread to update whether or not
+        a csv file should be generated at the end of the session
+
+        """
+        self._save_file = generate
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -383,24 +477,49 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._main_thread.left_arm_ext.connect(self.display_left_arm_ext_count)
         self._main_thread.sit_to_stand.connect(self.display_sit_to_stand_count)
 
-        """ connect start/stop bushbutton """
+        """ connect start/stop pushbutton """
         self.start_pushButton.clicked.connect(self._main_thread.start_stop_recording)
         self.start_pushButton.clicked.connect(self.update_start_pushButton)
 
+        """ connect pause pushbutton """
+        self.pause_pushButton.clicked.connect(self._main_thread.pause)
+
+        """ connect line edit """
+        self.name_id_lineEdit.editingFinished.connect(self.update_name_id)
+
         """ connect action triggers """
         self.actionOpen.triggered.connect(self.open_file)
+        self.actionWebcam.triggered.connect(self.open_webcam)
+        self.actionGenerate_CSV_File.triggered.connect(self.generate_file)
 
         self._frame_rates = []
 
     def update_frame(self, img):
+        """
+        updated gui interface whenever a new video frame is received from the
+        main worker thread
+
+        """
         self.img_label.setPixmap(QtGui.QPixmap(img))
 
         if self._main_thread.get_recording_status():
             self.start_pushButton.setText("Stop")
+            self.pause_pushButton.setVisible(True)
         else:
             self.start_pushButton.setText("Start")
+            self.pause_pushButton.setVisible(False)
+
+        if self._main_thread.get_pause_status():
+            self.pause_pushButton.setText("Resume")
+        else:
+            self.pause_pushButton.setText("Pause")
 
     def display_frame_rate(self, frame_rate):
+        """
+        shows the current frame rate on the gui
+        takes the average of the last ten frame rates for smoother output
+
+        """
         self._frame_rates.append(frame_rate)
         if len(self._frame_rates) > 10:
             self.framerate_label.setText(
@@ -409,26 +528,65 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self._frame_rates = []
 
     def display_session_time(self, time):
+        """
+        displays the time since the start of session
+        formatted as "h:mm:ss"
+
+        """
         self.sessiontime_label.setText(
             "Session Time: %d:%02d:%02d" % (time // 3600, time // 60, time % 60)
         )
 
     def update_start_pushButton(self):
+        """
+        updates the gui interface whenever the start / stop button is pressed
+
+        """
         self._movements = self._main_thread.get_tracking_movements()
 
         if self._main_thread.get_recording_status():
             """
             print tracking movements status to terminal
             (only used for testing)
-            
+
             """
+            print("")
             for name, movement in self._movements.items():
                 print(f"{name}: {movement.get_tracking_status()}")
             print("")
 
+    def update_name_id(self):
+        self._main_thread.update_name_id(self.name_id_lineEdit.text())
+
     def open_file(self):
+        """
+        callback for when the open action is triggered from the file menu
+        gets the file name / path and sends to the main-worker thread
+
+        """
         self._file_name = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "./")
         self._main_thread.get_file(self._file_name[0])
+
+    def open_webcam(self):
+        """
+        callback for when the webcam action is triggered from the file menu
+        starts the video capture from the webcam in the main-worker thread
+
+        """
+        self._main_thread.start_video_capture()
+
+    def generate_file(self):
+        """
+        callback for when the generate csv file action is triggeres from the file menu
+        passes the current "generate file" status to the main-worker thread
+
+        """
+        self._main_thread.generate_file(self.actionGenerate_CSV_File.isChecked())
+
+    """ 
+    main-window methods for updating the count values for counting movements
+
+    """
 
     def display_right_arm_ext_count(self, count):
         self.right_arm_ext_count_label.setText(f"Right Arm Extensions: {count}")
