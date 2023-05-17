@@ -254,6 +254,14 @@ class MainThread(QtCore.QThread):
             )
             invalid_file_msg_box.exec()
 
+    def generate_file(self, generate):
+        """
+        callback function for the main-window thread to update whether or not
+        a csv file should be generated at the end of the session
+
+        """
+        self._save_file = generate
+
     def get_frame_rate(self, frame_times):
         """
         calculates frame rate: used for testing
@@ -440,14 +448,6 @@ class MainThread(QtCore.QThread):
 
         """
         return self._tracking_movements.copy()
-
-    def generate_file(self, generate):
-        """
-        callback function for the main-window thread to update whether or not
-        a csv file should be generated at the end of the session
-
-        """
-        self._save_file = generate
 
 
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
