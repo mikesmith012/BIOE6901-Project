@@ -1,6 +1,6 @@
 # File Module
 - Author: Mike Smith
-- Email: dongming.shi@uqconnect.uq.edu.au
+- Email: dongming.shi@uqconnect.edu.au
 - Date of Implementation: 01/05/2023
 - Status: Prototype
 - Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway

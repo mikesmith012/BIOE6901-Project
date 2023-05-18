@@ -1,6 +1,6 @@
 # Movement Module
 - Author: Mike Smith
-- Email: dongming.shi@uqconnect.uq.edu.au
+- Email: dongming.shi@uqconnect.edu.au
 - Date of Implementation: 23/04/2023
 - Status: Prototype
 - Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
