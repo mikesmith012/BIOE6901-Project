@@ -49,8 +49,13 @@ The main file contains two thread classes:
 - `name`: name of the file to be retrieved
 
 `def generate_file(self, generate)`
-- callback function for the main-window thread
+- Callback function for the main-window thread
 - `generate`: a boolean value to specify whether or not a csv file should be generated at the end of the session
+
+`def handle_exit(self, event)`
+- handles user exit
+- will prompt the user to save recording if user exits while recording in active
+- `event`: not currently used
 
 `def get_frame_rate(self, frame_times)`
 - Calculates frame rate
@@ -112,6 +117,10 @@ The main file contains two thread classes:
     - Pushbutton signals
     - Line-edit signals
     - Action menu triggers
+
+`def closeEvent(self, event)`
+- Callback for when the user exit the program
+- `event`: the event that triggered the callback
 
 `def update_frame(self, img)`
 - Updates GUI interface whenever a new video frame is received from the main worker thread

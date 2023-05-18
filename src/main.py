@@ -262,6 +262,12 @@ class MainThread(QtCore.QThread):
         self._save_file = generate
 
     def handle_exit(self, event):
+        """
+        handles user exit
+        will prompt the user to save recording if user exits while recording in active
+
+        """
+
         if self._is_recording and self._save_file:
             handle_exit_msg_box = QtWidgets.QMessageBox()
             handle_exit_msg_box.setWindowTitle("Save session?")
@@ -336,6 +342,10 @@ class MainThread(QtCore.QThread):
             self._write_file.write(self._name_id)
 
     def pause(self):
+        """
+        pauses the recording
+
+        """
         self._is_paused = not self._is_paused
         if self._is_paused:
             self._pause_start_time = time.time()
@@ -344,9 +354,19 @@ class MainThread(QtCore.QThread):
             self._pause_time += self._pause_stop_time - self._pause_start_time
 
     def get_pause_status(self):
+        """
+        returns the current pause status
+        used by the main window thread to update gui
+
+        """
         return self._is_paused
     
     def update_name_id(self, name_id):
+        """
+        updated the name of id
+        called from the main window thread when user updated line edit
+
+        """
         self._name_id = name_id
 
     def reset_all_count(self):
@@ -495,6 +515,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self._frame_rates = []
 
     def closeEvent(self, event):
+        """
+        callback for when the user exit the program
+
+        """
         self._main_thread.handle_exit(event)
 
     def update_frame(self, img):
