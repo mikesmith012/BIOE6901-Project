@@ -14,7 +14,7 @@ from motion import Motion
 
 
 __author__ = "Mike Smith"
-__email__ = "dongming.shi@uqconnect.uq.edu.au"
+__email__ = "dongming.shi@uqconnect.edu.au"
 __date__ = "18/05/2023"
 __status__ = "Prototype"
 __credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]

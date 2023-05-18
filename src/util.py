@@ -6,7 +6,7 @@ Contains static definitions specifically used for this project.
 """
 
 __author__ = "Mike Smith"
-__email__ = "dongming.shi@uqconnect.uq.edu.au"
+__email__ = "dongming.shi@uqconnect.edu.au"
 __date__ = "22/04/2023"
 __status__ = "Prototype"
 __credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]
@@ -25,9 +25,9 @@ MAGENTA = (255, 0, 255)
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 
-""" max frame dimensions (4K): 3840 x 2160 """
-FRAME_WIDTH = 3840
-FRAME_HEIGHT = 2160
+""" max frame dimensions (full-hd): 1920 x 1080 """
+FRAME_WIDTH = 1920
+FRAME_HEIGHT = 1080
 FRAME_ORIGIN = 0
 
 """ init tuple (used for bounding box) """
