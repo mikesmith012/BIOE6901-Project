@@ -1,8 +1,7 @@
 # GUI Module
-
-Author: Mike Smith
-
-Date of Implementation: 16/04/2023
+- Form implementation generated from reading ui file 'ui/gui.ui'
+- Created by: PyQt5 UI code generator 5.15.9
+- Date of Implementation: 16/04/2023
 
 ## Description:
 

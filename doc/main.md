@@ -1,12 +1,13 @@
 # Main File
+- Author: Mike Smith
+- Email: dongming.shi@uqconnect.uq.edu.au
+- Date of Implementation: 12/04/2023
+- Status: Prototype
+- Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
 
-Author: Mike Smith
+## Description:
 
-Date of Implementation: 12/04/2023
-
-## Desription:
-
-The main file contains two threads:
+The main file contains two thread classes:
 - `class MainThread(QtCore.QThread)`
     - Back-end thread
     - Handles camera access, motion tracking

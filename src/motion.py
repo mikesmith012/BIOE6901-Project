@@ -1,5 +1,21 @@
+"""
+motion.py
+
+Motion tracking module. 
+Handles the passing of information between the "MediaPipe Pose Estimation" library 
+and the main application.
+
+"""
+
 import cv2, util
 import mediapipe as mp
+
+
+__author__ = "Mike Smith"
+__email__ = "dongming.shi@uqconnect.uq.edu.au"
+__date__ = "12/04/2023"
+__status__ = "Prototype"
+__credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]
 
 
 class Motion:

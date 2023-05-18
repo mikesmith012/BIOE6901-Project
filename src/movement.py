@@ -1,4 +1,20 @@
+"""
+movement.py
+
+Contains a generic movement class. 
+Each movement is defined by a set of angle (each defined by three points) 
+and a set of positional thresholds (each define by two points).
+
+"""
+
 import math, cv2, util
+
+
+__author__ = "Mike Smith"
+__email__ = "dongming.shi@uqconnect.uq.edu.au"
+__date__ = "23/04/2023"
+__status__ = "Prototype"
+__credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]
 
 
 class Movement:

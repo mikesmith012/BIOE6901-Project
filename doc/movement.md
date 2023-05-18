@@ -1,12 +1,13 @@
 # Movement Module
-
-Author: Mike Smith
-
-Date of Implementation: 23/04/2023
+- Author: Mike Smith
+- Email: dongming.shi@uqconnect.uq.edu.au
+- Date of Implementation: 12/04/2023
+- Status: Prototype
+- Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
 
 ## Description:
 
-Generic movement class. Each movement is defined by a set of angle (each defined by three points) and a set of positional thresholds (each define by two points).
+Contains a generic movement class. Each movement is defined by a set of angle (each defined by three points) and a set of positional thresholds (each define by two points).
 
 ## Module methods:
 

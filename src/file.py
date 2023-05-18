@@ -1,4 +1,23 @@
+"""
+file.py
+
+Handles reading and writing files. 
+Contains methods for parsing movement data and writing to csv files.
+
+Supported files:
+- `.csv`
+- `.mp4`
+
+"""
+
 import csv, time, os, util
+
+
+__author__ = "Mike Smith"
+__email__ = "dongming.shi@uqconnect.uq.edu.au"
+__date__ = "01/05/2023"
+__status__ = "Prototype"
+__credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]
 
 
 class File:
@@ -8,7 +27,7 @@ class File:
     """
 
     """ default file path (in sub-dir "files" located in current dir) """
-    file_path = "./files"
+    file_path = util.DEFAULT_FILE_PATH
     supported_files = {util.CSV: ".csv", util.MP4: ".mp4"}
 
     def __init__(self, save=True):
@@ -50,7 +69,7 @@ class File:
         """
         pass
 
-    def write(self):
+    def write(self, name):
         """
         takes the parsed data and writes it to a csv file
 
@@ -65,7 +84,7 @@ class File:
         """ make sure there are no existing files with duplicate names """
         dir = os.scandir(self.file_path)
         files = [a.name for a in dir]
-        fname = self.create_filename()
+        fname = f"{self.file_path}/{name}-{self.create_filename()}"
         print(f"saved file: {fname}") if fname not in files else print("file exists")
 
         """ create a csv file and write to it """
@@ -81,16 +100,7 @@ class File:
         creates a unique filename using the current system time and date
 
         """
-        localtime = time.localtime()
-        return "%s/%04d-%02d-%02d-%02d-%02d-%02d.csv" % (
-            self.file_path,
-            localtime[0],
-            localtime[1],
-            localtime[2],
-            localtime[3],
-            localtime[4],
-            localtime[5],
-        )
+        return f'{time.strftime("%y%m%d-%H%M%S")}.csv'
 
     def parse_movements(self, movements, landmarks, curr_time):
         """

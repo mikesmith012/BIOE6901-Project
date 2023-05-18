@@ -1,4 +1,18 @@
-import cv2, sys, time, util
+"""
+main.py
+
+The main file contains two thread classes:
+- `class MainThread(QtCore.QThread)`
+    - Back-end thread
+    - Handles camera access, motion tracking
+    and counting reps
+- `class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow)`
+    - Front-end thread
+    - Handles user input to the graphical user interface
+
+"""
+
+import cv2, sys, time, util, config
 from PyQt5 import QtCore, QtWidgets, QtGui
 from gui import Ui_MainWindow
 from statistics import mean
@@ -6,26 +20,12 @@ from movement import Movement
 from motion import Motion
 from file import File
 
-""" 
-Works with Python version 3.10
 
-Setup (Mac / Linux)
-1.  Create python virtual environment: `python3 -m venv venv`
-2.  Activate virtual environment: `source venv/bin/activate`
-3.  Install dependencies: `python3 -m pip install -r req.txt`
-4.  Run the program: `python3 src/main.py`
-5.  To deactivate virtual environment: `deactivate`
-
-Setup (Windows)
-1.  Create python virtual environment: `py -m venv venv`
-2.  Activate virtual environment: `.\\venv\Scripts\activate`
-3.  Install dependencies: `py -m pip install -r req.txt`
-4.  Run the program: `py src/main.py`
-5.  To deactivate virtual environment: `deactivate`
-
-Generate GUI File: `pyuic5 -x ui/gui.ui -o gui.py`
-
-"""
+__author__ = "Mike Smith"
+__email__ = "dongming.shi@uqconnect.uq.edu.au"
+__date__ = "12/04/2023"
+__status__ = "Prototype"
+__credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]
 
 
 class MainThread(QtCore.QThread):
@@ -60,6 +60,7 @@ class MainThread(QtCore.QThread):
         self._read_file = None
         self._write_file = None
         self._save_file = True
+        self._name_id = ""
 
     def run(self):
         """
@@ -159,8 +160,6 @@ class MainThread(QtCore.QThread):
         """ handles program exit """
         cv2.destroyAllWindows()
         self._cap.release()
-
-        print("exit")
 
     def stop(self):
         """
@@ -262,6 +261,24 @@ class MainThread(QtCore.QThread):
         """
         self._save_file = generate
 
+    def handle_exit(self, event):
+        if self._is_recording and self._save_file:
+            handle_exit_msg_box = QtWidgets.QMessageBox()
+            handle_exit_msg_box.setWindowTitle("Save session?")
+            handle_exit_msg_box.setIcon(QtWidgets.QMessageBox.Question)
+            handle_exit_msg_box.setText(
+                "Would you like to save the recorded session?"
+            )
+            handle_exit_msg_box.setStandardButtons(
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
+            handle_exit_msg_box.exec()
+
+            button_handler = handle_exit_msg_box.clickedButton()
+            button_clicked = handle_exit_msg_box.standardButton(button_handler)
+            if button_clicked == QtWidgets.QMessageBox.Yes:
+                self._write_file.write(self._name_id)
+
     def get_frame_rate(self, frame_times):
         """
         calculates frame rate: used for testing
@@ -316,7 +333,7 @@ class MainThread(QtCore.QThread):
             self._stop_time = time.time()
 
             """ write to csv file """
-            self._write_file.write()
+            self._write_file.write(self._name_id)
 
     def pause(self):
         self._is_paused = not self._is_paused
@@ -330,7 +347,7 @@ class MainThread(QtCore.QThread):
         return self._is_paused
     
     def update_name_id(self, name_id):
-        print(name_id)
+        self._name_id = name_id
 
     def reset_all_count(self):
         """
@@ -351,13 +368,8 @@ class MainThread(QtCore.QThread):
 
         """
         self._right_arm_ext = Movement(
-            [
-                (Motion.right_wrist, Motion.right_elbow, Motion.left_shoulder, 130),
-                (Motion.right_elbow, Motion.right_shoulder, Motion.right_hip, 30),
-            ],
-            [
-                (Motion.right_elbow, Motion.right_shoulder, ">", 1),
-            ],
+            config.RIGHT_ARM_EXT_ANGULAR_THRESH,
+            config.RIGHT_ARM_EXT_POSITIONAL_THRESH,
             True,
             debug=True,
         )
@@ -368,13 +380,8 @@ class MainThread(QtCore.QThread):
         
         """
         self._left_arm_ext = Movement(
-            [
-                (Motion.left_wrist, Motion.left_elbow, Motion.left_shoulder, 130),
-                (Motion.left_elbow, Motion.left_shoulder, Motion.left_hip, 30),
-            ],
-            [
-                (Motion.left_elbow, Motion.left_shoulder, ">", 1),
-            ],
+            config.LEFT_ARM_EXT_ANGULAR_THRESH,
+            config.LEFT_ARM_EXT_POSITIONAL_THRESH,
             True,
             debug=True,
         )
@@ -385,16 +392,8 @@ class MainThread(QtCore.QThread):
         
         """
         self._sit_to_stand = Movement(
-            [
-                (Motion.right_ankle, Motion.right_knee, Motion.right_hip, 150),
-                (Motion.left_ankle, Motion.left_knee, Motion.left_hip, 150),
-                (Motion.right_knee, Motion.right_hip, Motion.right_shoulder, 150),
-                (Motion.left_knee, Motion.left_hip, Motion.left_shoulder, 150),
-            ],
-            [
-                (Motion.left_knee, Motion.left_hip, ">", 0.2),
-                (Motion.right_knee, Motion.right_hip, ">", 0.2),
-            ],
+            config.SIT_TO_STAND_ANGULAR_THRESH,
+            config.SIT_TO_STAND_POSITIONAL_THRESH,
             True,
             ignore_vis=True,
             debug=True,
@@ -466,6 +465,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """ create the worker thread """
         self._main_thread = MainThread()
         self._main_thread.start()
+        #self._main_thread.setTerminationEnabled(True)
 
         """ connect back-end signals """
         self._main_thread.image.connect(self.update_frame)
@@ -493,6 +493,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.actionGenerate_CSV_File.triggered.connect(self.generate_file)
 
         self._frame_rates = []
+
+    def closeEvent(self, event):
+        self._main_thread.handle_exit(event)
 
     def update_frame(self, img):
         """
