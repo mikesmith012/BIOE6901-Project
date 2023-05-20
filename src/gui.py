@@ -101,22 +101,20 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.framerate_label.setText(_translate("MainWindow", "Frame Rate: "))
-        self.right_arm_ext_count_label.setText(_translate("MainWindow", "Right Arm Extensions:"))
+        self.right_arm_ext_count_label.setText(
+            _translate("MainWindow", "Right Arm Extensions:")
+        )
         self.sit_to_stand_count_label.setText(_translate("MainWindow", "Sit to Stand:"))
-        self.left_arm_ext_count_label.setText(_translate("MainWindow", "Left Arm Extensions:"))
+        self.left_arm_ext_count_label.setText(
+            _translate("MainWindow", "Left Arm Extensions:")
+        )
         self.sessiontime_label.setText(_translate("MainWindow", "Session Time:"))
-        self.name_id_lineEdit.setPlaceholderText(_translate("MainWindow", "Patient Name or ID"))
+        self.name_id_lineEdit.setPlaceholderText(
+            _translate("MainWindow", "Patient Name or ID")
+        )
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.actionOpen.setText(_translate("MainWindow", "Open"))
         self.actionWebcam.setText(_translate("MainWindow", "Webcam"))
-        self.actionGenerate_CSV_File.setText(_translate("MainWindow", "Generate CSV File"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+        self.actionGenerate_CSV_File.setText(
+            _translate("MainWindow", "Generate CSV File")
+        )

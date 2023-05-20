@@ -115,7 +115,11 @@ class MainThread(QtCore.QThread):
             self.frame_rate.emit(frame_rate)
 
             """ get the time since start of session """
-            if self._start_time is not None and self._is_recording and not self._is_paused:
+            if (
+                self._start_time is not None
+                and self._is_recording
+                and not self._is_paused
+            ):
                 self._session_time = time.time() - self._start_time - self._pause_time
                 self.session_time.emit(int(self._session_time))
 
@@ -272,9 +276,7 @@ class MainThread(QtCore.QThread):
             handle_exit_msg_box = QtWidgets.QMessageBox()
             handle_exit_msg_box.setWindowTitle("Save session?")
             handle_exit_msg_box.setIcon(QtWidgets.QMessageBox.Question)
-            handle_exit_msg_box.setText(
-                "Would you like to save the recorded session?"
-            )
+            handle_exit_msg_box.setText("Would you like to save the recorded session?")
             handle_exit_msg_box.setStandardButtons(
                 QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
             )
@@ -326,7 +328,9 @@ class MainThread(QtCore.QThread):
             """
             self._write_file = File(save=self._save_file)
 
-            if self._stop_time is not None and (self._source == util.VIDEO or self._is_paused):
+            if self._stop_time is not None and (
+                self._source == util.VIDEO or self._is_paused
+            ):
                 self._start_time = time.time() - (self._stop_time - self._start_time)
             else:
                 self._start_time = time.time()
@@ -360,7 +364,7 @@ class MainThread(QtCore.QThread):
 
         """
         return self._is_paused
-    
+
     def update_name_id(self, name_id):
         """
         updated the name of id
@@ -391,7 +395,7 @@ class MainThread(QtCore.QThread):
             config.RIGHT_ARM_EXT_ANGULAR_THRESH,
             config.RIGHT_ARM_EXT_POSITIONAL_THRESH,
             True,
-            debug=True,
+            debug=False,
         )
         self._tracking_movements.update({"right arm ext": self._right_arm_ext})
 
@@ -403,7 +407,7 @@ class MainThread(QtCore.QThread):
             config.LEFT_ARM_EXT_ANGULAR_THRESH,
             config.LEFT_ARM_EXT_POSITIONAL_THRESH,
             True,
-            debug=True,
+            debug=False,
         )
         self._tracking_movements.update({"left arm ext": self._left_arm_ext})
 
@@ -416,7 +420,7 @@ class MainThread(QtCore.QThread):
             config.SIT_TO_STAND_POSITIONAL_THRESH,
             True,
             ignore_vis=True,
-            debug=True,
+            debug=False,
         )
         self._tracking_movements.update({"sit to stand": self._sit_to_stand})
 
@@ -485,7 +489,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """ create the worker thread """
         self._main_thread = MainThread()
         self._main_thread.start()
-        #self._main_thread.setTerminationEnabled(True)
+        # self._main_thread.setTerminationEnabled(True)
 
         """ connect back-end signals """
         self._main_thread.image.connect(self.update_frame)
@@ -531,7 +535,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if self._main_thread.get_recording_status():
             self.start_pushButton.setText("Stop")
-            self.pause_pushButton.setVisible(True)
+
+            if self._main_thread.get_input_source() == util.WEBCAM:
+                self.pause_pushButton.setVisible(True)
+
         else:
             self.start_pushButton.setText("Start")
             self.pause_pushButton.setVisible(False)

@@ -84,7 +84,10 @@ class File:
         """ make sure there are no existing files with duplicate names """
         dir = os.scandir(self.file_path)
         files = [a.name for a in dir]
-        fname = f"{self.file_path}/{name}-{self.create_filename()}"
+
+        """ create an appropriate filename (display to terminal for debugging) """
+        name = f"{name}-" if name != "" else ""
+        fname = f"{self.file_path}/{name}{self.create_filename()}"
         print(f"saved file: {fname}") if fname not in files else print("file exists")
 
         """ create a csv file and write to it """
