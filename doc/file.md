@@ -7,7 +7,7 @@
 
 ## Description
 
-Handles reading and writing files. Contains methods for parsing movement data and writing to csv files.
+Handles reading and writing files. Contains methods for checking invalid files, parsing movement data and writing to csv files.
 
 Supported files:
 - `.csv`
@@ -27,7 +27,7 @@ Supported files:
 - Returns the file type
 - `filename`: the name of the file to be opened
 
-`def read(self):`
+`def read(self)`
 - Not implemented yet
 
 `def write(self)`

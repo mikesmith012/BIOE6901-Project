@@ -5,6 +5,12 @@ Motion tracking module.
 Handles the passing of information between the "MediaPipe Pose Estimation" library 
 and the main application.
 
+ -  Specifically for this project, motion tracking will require a high 
+    confidence level (90%) for detection. 
+ -  Continuous tracking will require at least an average confidence level (50%). 
+ -  This is to ensure the program is sure of the subject prior to tracking, 
+    but stay locked on to the subject while tracking.
+
 see "doc/motion.md" for more details
 
 """

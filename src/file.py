@@ -2,7 +2,7 @@
 file.py
 
 Handles reading and writing files. 
-Contains methods for parsing movement data and writing to csv files.
+Contains methods for checking invalid files, parsing movement data and writing to csv files.
 
 Supported files:
 - `.csv`
