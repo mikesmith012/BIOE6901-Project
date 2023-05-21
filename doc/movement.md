@@ -5,11 +5,11 @@
 - Status: Prototype
 - Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
 
-## Description:
+## Description
 
 Contains a generic movement class. Each movement is defined by a set of angle (each defined by three points) and a set of positional thresholds (each define by two points).
 
-## Module methods:
+## Module methods
 
 `def __init__(self, points, positions, is_tracking, ignore_vis=False, debug=False)`
 - `points`: a list containing tuples of three points and the threshold angle
@@ -53,6 +53,11 @@ Contains a generic movement class. Each movement is defined by a set of angle (e
 - Checks that points are not too close to the edge of the frame. Otherwise, ignore points as this can lead to inaccurate angle values.
 - Make sure all angle values are between 0 and 180 degrees
 - Returns the final calculated angle value
+
+`def get_position(self, pos, landmarks, x_or_y)`
+- Returns the current x or y position of specifies landmark
+- `pos`: the index position of the specified landmark (same ad the landmark id)
+- `landmarks`: a list of all tracking landmarks
 
 `def annotate(self, img, source, pixels, angle, index)`
 - Overlays angle values onto video frames

@@ -5,6 +5,6 @@
 - Status: Prototype
 - Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
 
-## Description:
+## Description
 
 Contains static definitions specifically used for this project.

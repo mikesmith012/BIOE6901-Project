@@ -5,6 +5,8 @@ Motion tracking module.
 Handles the passing of information between the "MediaPipe Pose Estimation" library 
 and the main application.
 
+see "doc/motion.md" for more details
+
 """
 
 import cv2, util

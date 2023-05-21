@@ -5,7 +5,7 @@
 - Status: Prototype
 - Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
 
-## Description:
+## Description
 
 Handles reading and writing files. Contains methods for parsing movement data and writing to csv files.
 
@@ -13,7 +13,7 @@ Supported files:
 - `.csv`
 - `.mp4`
 
-## Module methods:
+## Module methods
 
 `def __init__(self, save=True)`
 - `save`: a boolean to specify whether or not to generate a file

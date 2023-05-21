@@ -8,6 +8,8 @@ Contains thresholds for the following movements:
 - Left arm extensions
 - Sit to stand
 
+see "doc/config.md" for more details
+
 """
 
 from motion import Motion
@@ -22,6 +24,8 @@ __credits__ = ["Agnethe Kaasen", "Live Myklebust", "Amber Spurway"]
 
 """
 right arm extension thresholds
+- wrist-elbow-shoulder angle: 130 degrees
+- elbow-shoulder-hip angle: 30 degrees
 
 """
 RIGHT_ARM_EXT_ANGULAR_THRESH = [
@@ -36,6 +40,8 @@ RIGHT_ARM_EXT_POSITIONAL_THRESH = [
 
 """
 left arm extension thresholds
+- wrist-elbow-shoulder angle: 130 degrees
+- elbow-shoulder-hip angle: 30 degrees
 
 """
 LEFT_ARM_EXT_ANGULAR_THRESH = [
@@ -50,6 +56,8 @@ LEFT_ARM_EXT_POSITIONAL_THRESH = [
 
 """
 sit to stand thresholds
+- ankle-knee-hip angle: 150 degrees
+- knee-hip-shoulder angle: 150 degrees
 
 """
 SIT_TO_STAND_ANGULAR_THRESH = [

@@ -8,6 +8,8 @@ Supported files:
 - `.csv`
 - `.mp4`
 
+see "doc/file.md" for more details
+
 """
 
 import csv, time, os, util

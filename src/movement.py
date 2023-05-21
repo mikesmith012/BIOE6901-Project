@@ -5,6 +5,8 @@ Contains a generic movement class.
 Each movement is defined by a set of angle (each defined by three points) 
 and a set of positional thresholds (each define by two points).
 
+see "doc/movement.md" for more details
+
 """
 
 import math, cv2, util
@@ -62,6 +64,11 @@ class Movement:
         self.reset_count()
 
     def invalid_num_of_elements_err(self, i):
+        """
+        checks for invalid lengths in the input arrays.
+        raises a `ValueError` is invalid number of elements is detected.
+        
+        """
         raise ValueError(f"invalid number of elements in index {i}")
 
     def reset_count(self):
@@ -109,16 +116,16 @@ class Movement:
             for i, pos in enumerate(self._positions):
                 if pos[2] == "<":
                     if (
-                        self.get_y_position(pos[1], landmarks)
-                        < self.get_y_position(pos[0], landmarks) + pos[3]
+                        self.get_position(pos[1], landmarks, util.Y)
+                        < self.get_position(pos[0], landmarks, util.Y) + pos[3]
                     ):
                         self._position_conditions[i] = True
                     else:
                         self._position_conditions[i] = False
                 elif pos[2] == ">":
                     if (
-                        self.get_y_position(pos[1], landmarks)
-                        > self.get_y_position(pos[0], landmarks) - pos[3]
+                        self.get_position(pos[1], landmarks, util.Y)
+                        > self.get_position(pos[0], landmarks, util.Y) - pos[3]
                     ):
                         self._position_conditions[i] = True
                     else:
@@ -153,6 +160,10 @@ class Movement:
         return img, self._count
 
     def get_count(self):
+        """
+        returns the current movement count value
+
+        """
         return self._count
 
     def find_angle(self, p1, p2, p3):
@@ -198,11 +209,14 @@ class Movement:
         else:
             return 360 - angle_deg
 
-    def get_x_position(self, pos, landmarks):
-        return landmarks[pos][1]
+    def get_position(self, pos, landmarks, x_or_y):
+        """
+        returns the current x or y position of specifies landmark
+        pos: the index position of the specified landmark (same ad the landmark id)
+        landmarks: a list of all tracking landmarks
 
-    def get_y_position(self, pos, landmarks):
-        return landmarks[pos][2]
+        """
+        return landmarks[pos][x_or_y]
 
     def annotate(self, img, source, pixels, angle, index):
         """

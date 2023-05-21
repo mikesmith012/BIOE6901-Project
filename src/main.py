@@ -10,6 +10,8 @@ The main file contains two thread classes:
     - Front-end thread
     - Handles user input to the graphical user interface
 
+see "doc/main.md" for more details
+
 """
 
 import cv2, sys, time, util, config

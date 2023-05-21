@@ -5,7 +5,7 @@
 - Status: Prototype
 - Credits: Agnethe Kaasen, Live Myklebust, Amber Spurway
 
-## Description:
+## Description
 
 The main file contains two thread classes:
 - `class MainThread(QtCore.QThread)`
@@ -16,7 +16,7 @@ The main file contains two thread classes:
     - Front-end thread
     - Handles user input to the graphical user interface
 
-## Main Worker Thread methods:
+## Main Worker Thread methods
 
 `def __init__(self, parent=None)`
 - Initialises all variables to be used in this thread.
@@ -106,7 +106,7 @@ The main file contains two thread classes:
 - Returns a dictionary containing all movements
 - Called by the main-window thread to update gui
 
-## Main Mindow Thread methods:
+## Main Mindow Thread methods
 
 `def __init__(self, parent=None)`
 - Sets up graphical user interface

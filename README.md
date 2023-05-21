@@ -1,11 +1,11 @@
 # BIOE6901-Project
 
 ## Project
-- [NRM-HT_2] Quantifying physical therapy with an easy-to-use, intuitive tool
+- [NRM-HT_2] - Quantifying physical therapy with an easy-to-use, intuitive tool
 
 ## Description & Features
 - A motion tracking application for counting reps during a physiotherapy session.
-- Uses computer webcan by default, able to use an external USB webcam.
+- Uses computer webcam by default, able to use an external USB webcam.
 - Tracks motion and counts in real-time.
 - Saves recorded session information to a csv file under patient name or ID number.
 - Able to apply motion tracking and counting reps on mp4 videos.

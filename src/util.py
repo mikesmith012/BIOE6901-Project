@@ -3,6 +3,8 @@ util.py
 
 Contains static definitions specifically used for this project.
 
+see "doc/util.md" for more details
+
 """
 
 __author__ = "Mike Smith"
