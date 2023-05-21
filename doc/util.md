@@ -29,7 +29,7 @@ Contains static definitions specifically used for this project.
 
 ### Positional Thresholds
 
-Landmark co-ordinated that are close to the edges of the frame often return inaccurate co-ordinates. Therefore points that lay outside of these tresholds will be ignored by the "Movement Module" when counting reps.
+Landmark co-ordinates that are close to the edges of the frame often return inaccurate values. Therefore points that lay outside of these tresholds (near the edges of the frame) will be ignored by the "Movement Module" when counting reps.
 
 `MIN`: Minimum positional threshold: 0.02
 
@@ -37,7 +37,7 @@ Landmark co-ordinated that are close to the edges of the frame often return inac
 
 ### Visibility Threshold
 
-All detected landmarks have a visibility value. Landmark points with a low visibility values often return inaccurate co-ordinates as a result of the "Pose Estimation" predicting low visibility points. Therefore points that have a visibility value less than the threshold are ignored by the "Movement Module" when counting reps.
+All detected landmarks have a visibility value. Landmark points with a low visibility values often return inaccurate co-ordinate values as a result of the "Pose Estimation" predicting low visibility points. Therefore points that have a visibility value less than the threshold are ignored by the "Movement Module" when counting reps.
 
 `VIS`: Minimum visibility threshold: 0.5
 

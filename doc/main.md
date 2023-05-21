@@ -53,8 +53,8 @@ The main file contains two thread classes:
 - `generate`: a boolean value to specify whether or not a csv file should be generated at the end of the session
 
 `def handle_exit(self, event)`
-- handles user exit
-- will prompt the user to save recording if user exits while recording in active
+- Handles user exit
+- Will prompt the user to save recording if user exits while recording in active
 - `event`: not currently used
 
 `def get_frame_rate(self, frame_times)`

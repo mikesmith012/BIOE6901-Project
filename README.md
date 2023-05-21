@@ -6,7 +6,7 @@
 ## Description & Features
 - A motion tracking application for counting reps during a physiotherapy session.
 - Uses computer webcam by default, able to use an external USB webcam.
-- Tracks motion and counts movements in real-time.
+- Tracks motion using the "MediaPipe Pose Estimation" library and counts movements in real-time.
 - Saves recorded session information to a csv file under patient name or ID number.
 - Able to apply motion tracking and counting reps on mp4 videos.
 

@@ -20,6 +20,7 @@ Contains a generic movement class. Each movement is defined by a set of angle (e
 
 `def invalid_num_of_elements_err(self, i)`
 - Checks for invalid lengths in the input arrays.
+- `i`: the current index to be checked.
 - Raises a `ValueError` is invalid number of elements is detected.
 
 `def reset_count(self)`
@@ -58,12 +59,13 @@ Contains a generic movement class. Each movement is defined by a set of angle (e
 - Returns the current x or y position of specifies landmark
 - `pos`: the index position of the specified landmark (same ad the landmark id)
 - `landmarks`: a list of all tracking landmarks
+- `x_or_y`: whether to get the x or y co-ordinate of the given point.
 
 `def annotate(self, img, source, pixels, angle, index)`
 - Overlays angle values onto video frames
 - `img`: the current video frame
 - `source`: the current video source: (video or webcam)
-- 'pixels`: a list of pixel co-ordinated for all detected landmarks
+- `pixels`: a list of pixel co-ordinated for all detected landmarks
 - `angle`: the angle value to be annotated onto the frame.
 - `index`: the index of the current angle to annotate
 - Returns the current video frame with the annotated angles

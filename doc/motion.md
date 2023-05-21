@@ -9,7 +9,14 @@
 
 Motion tracking module. Handles the passing of information between the "MediaPipe Pose Estimation" library and the main application.
 
-Specifically for this project, motion tracking will require a high confidence level (90%) for detection. Continuous tracking will require at least an average confidence level (50%). This is to ensure the program is sure of the subject prior to tracking, but stay locked on to the subject while tracking.
+The "MediaPipe Pose Estimation" library was chosen for this application becuase of the following key benefits:
+- ML models are lightweight, does not require high performance computers to run.
+- Runs in real-time, has low latency and is able to maintain a reasonable frame rate (>10fps).
+- Leverages advanced ML models to achieve high accuracy in pose estimation.
+- Provides a modular and flexible architecture that allows for customisation. Can set confidence level thresholds, choose model complexity etc.
+- Can handle challenging environments, ensuring robust pose estimation. Can handle scenarios where body parts are partially or fully obstructed and still provide reasonably accurate results.
+
+Specifically for this project, motion tracking will require a 90% high confidence level for detection. Continuous tracking will require a 50% confidence level. This is to ensure the program is sure of the subject prior to tracking, but stay locked on to the subject while tracking.
 
 Motion tracking confidence levels:
 ```
@@ -83,6 +90,29 @@ right_foot = 32
         min_detection_confidence=min_detection_confidence,
         min_tracking_confidence=min_tracking_confidence)`
 - Initialises "MediaPipe Pose Estimation" for motion tracking.
+- Sets the following default values:
+    - `static_image_mode`: 
+        - Whether to treat the input images as a batch of static and possibly unrelated images, or a video stream.
+        - Set to `False` by default to allow for more accurate motion tracking in video streams.
+    - `model_complexity`: 
+        - Complexity of the pose landmark model: 0, 1 or 2.
+        - Set to `1` by defualt to provide a balance between accuracy and performace.
+    - `smooth_landmarks`:
+        - Whether to filter landmarks across different input images to reduce jitter.
+        - Set to `True` by defualt to allow for smoother landmark values and to reduce the effect of noise on the landmark values.
+    - `enable_segmentation`: 
+        - Whether to predict segmentation mask.
+        - Set to `False` by default as it is not used for this application.
+    - `smooth_segmentation`: 
+        - Whether to filter segmentation across different input images to reduce jitter.
+        - Set to `True` by default to allow for smoother subject detection.
+    - `min_detection_confidence`: 
+        - Minimum confidence value (between 0 and 1) for person detection to be considered successful.
+        - Set to the `min_detection_confidence` value mentioned in "Description".
+    - `min_tracking_confidence`: 
+        - Minimum confidence value (between 0 and 1) for the pose landmarks to be considered tracked successfully.
+        - Set to the `min_tracking_confidence` value mentioned "Description".
+- source: https://github.com/google/mediapipe/blob/master/mediapipe/python/solutions/pose.py
 
 `def track_motion(self, img, landmarks)`
 - Used for tracking motion within a bounding box

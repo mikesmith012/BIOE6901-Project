@@ -214,6 +214,7 @@ class Movement:
         returns the current x or y position of specifies landmark
         pos: the index position of the specified landmark (same ad the landmark id)
         landmarks: a list of all tracking landmarks
+        x_or_y: whether to get the x or y co-ordinate of the given point
 
         """
         return landmarks[pos][x_or_y]

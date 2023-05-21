@@ -31,6 +31,19 @@ Positional Thresholds:
 - One or more positional threshold can be used to define a movement.
 - If multiple positional thresholds are defined, all must be satisfied for the movement to count.
 
+## Chosen Thresholds
+
+The chosen angular and positional thresholds are based on the physiological properties of the human anatomy. Chosen thresholds are tested extensively to provide the highest possible accuracy for the given movement while ignoring unintentional movements to avoid miscounts. A combination of multiple angular and positional thresholds can be used to define a specific movement. All threshold requirements must be satisfied for the movement to count.
+
+### Arm Extensions
+- wrist-elbow-shoulder angle: 130 degrees
+- elbow-shoulder-hip angle: 30 degrees
+
+### Sit to Stand
+- ankle-knee-hip angle: 150 degrees
+- knee-hip-shoulder angle: 150 degrees
+- y co-ordinates of knee and hip points are within a distance of "0.2 $\times$ frame hight" of each other OR knee point is positionally higher than the hip point.
+
 ## Example Usage
 
 ```
@@ -46,15 +59,3 @@ EXAMPLE_POSITIONAL_THRESH = [
     ...
 ]
 ```
-
-## Chosen Thresholds
-
-The chosen angular and positional thresholds are based on the physiological properties of the human anatomy. Chosen thresholds are tested extensively to provide the highest possible accuracy for the given movement while ignoring unintentional movements to avoid miscounts. A combination of multiple angular and positional thresholds can be used to define a specific movement. All threshold requirements must be satisfied for the movement to count.
-
-### Arm Extensions
-- wrist-elbow-shoulder angle: 130 degrees
-- elbow-shoulder-hip angle: 30 degrees
-
-### Sit to Stand
-- ankle-knee-hip angle: 150 degrees
-- knee-hip-shoulder angle: 150 degrees
