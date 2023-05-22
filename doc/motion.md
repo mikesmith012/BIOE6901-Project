@@ -9,7 +9,7 @@
 
 Motion tracking module. Handles the passing of information between the "MediaPipe Pose Estimation" library and the main application.
 
-The "MediaPipe Pose Estimation" library was chosen for this application becuase of the following key benefits:
+The "MediaPipe Pose Estimation" library was chosen for this application because of the following key benefits:
 - ML models are lightweight, does not require high performance computers to run.
 - Runs in real-time, has low latency and is able to maintain a reasonable frame rate (>10fps).
 - Leverages advanced ML models to achieve high accuracy in pose estimation.
