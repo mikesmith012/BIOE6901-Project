@@ -35,20 +35,20 @@ Positional Thresholds (normalised pixel co-ordinates):
 
 The chosen angular and positional thresholds are based on the physiological properties of the human anatomy. Chosen thresholds are tested extensively to provide the highest possible accuracy for the given movement while ignoring unintentional movements to avoid miscounts. A combination of multiple angular and positional thresholds can be used to define a specific movement. All threshold requirements must be satisfied for the movement to count.
 
-### Arm Extensions [^1]
+### Arm Extensions [^2]
 - wrist-elbow-shoulder angle: 130 degrees
 - elbow-shoulder-hip angle: 30 degrees
 
 ![Arm Extensions](./images/arm_extensions.png) 
-[^3]
+[^1]
 
-### Sit to Stand [^2]
+### Sit to Stand [^3]
 - ankle-knee-hip angle: 150 degrees
 - knee-hip-shoulder angle: 150 degrees
 - y co-ordinates of knee and hip points are within a distance of "0.2 $\times$ frame hight" of each other OR knee point is positionally higher than the hip point.
 
 ![Sit to Stand](./images/sit_to_stand.png)
-[^3]
+[^1]
 
 ## Example Usage
 
@@ -66,8 +66,8 @@ EXAMPLE_POSITIONAL_THRESH = [
 ]
 ```
 
-[^1]: Elbow range of motion: How to measure &amp; improve elbow movement (nd.) Available at: https://www.shoulder-pain-explained.com/elbow-range-of-motion.html#:~:text=What%20is%20this%3F,-Report%20Ad&amp;text=At%20the%20elbow%20joint%2C%20most,extension%20to%20130o%20flexion (Accessed: 24 May 2023)
+[^1] Google (2023) Mediapipe/pose.md at master · google/mediapipe, GitHub. Available at: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md (Accessed: 24 May 2023)
 
-[^2]: Hiroshi R Yamasaki (nd.) Definition of segment/joint angles and coordinates - researchgate. Available at: https://www.researchgate.net/figure/Definition-of-segment-joint-angles-and-coordinates_fig1_325552552 (Accessed: 24 May 2023)
+[^2]: Elbow range of motion: How to measure &amp; improve elbow movement (nd.) Available at: https://www.shoulder-pain-explained.com/elbow-range-of-motion.html#:~:text=What%20is%20this%3F,-Report%20Ad&amp;text=At%20the%20elbow%20joint%2C%20most,extension%20to%20130o%20flexion (Accessed: 24 May 2023)
 
-[^3]: image source: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md 
+[^3]: Hiroshi R Yamasaki (nd.) Definition of segment/joint angles and coordinates - researchgate. Available at: https://www.researchgate.net/figure/Definition-of-segment-joint-angles-and-coordinates_fig1_325552552 (Accessed: 24 May 2023)
