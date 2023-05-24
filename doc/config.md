@@ -66,7 +66,7 @@ EXAMPLE_POSITIONAL_THRESH = [
 ]
 ```
 
-[^1] Google (2023) Mediapipe/pose.md at master · google/mediapipe, GitHub. Available at: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md (Accessed: 24 May 2023)
+[^1]: Google (2023) Mediapipe/pose.md at master · google/mediapipe, GitHub. Available at: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md (Accessed: 24 May 2023)
 
 [^2]: Elbow range of motion: How to measure &amp; improve elbow movement (nd.) Available at: https://www.shoulder-pain-explained.com/elbow-range-of-motion.html#:~:text=What%20is%20this%3F,-Report%20Ad&amp;text=At%20the%20elbow%20joint%2C%20most,extension%20to%20130o%20flexion (Accessed: 24 May 2023)
 
