@@ -1,4 +1,4 @@
-# BIOE6901-Project
+# BIOE6901-Project: PhysioTrack
 
 ## Project
 - [NRM-HT_2] - Quantifying physical therapy with an easy-to-use, intuitive tool

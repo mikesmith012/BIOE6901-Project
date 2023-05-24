@@ -16,14 +16,14 @@ Contains thresholds for the following movements:
 
 ## Definitions
 
-Angular Thresholds:
+Angular Thresholds (degrees):
 
 - Refers to the limit used to determine whether a change in angle surpasses a predefined threshold.
 - Each angle is defined by three points with the centre point being where the angle is evaluated.
 - One or more angular threshold can be used to define a movement.
 - If multiple angular thresholds are defined, all must be satisfied for the movement to count.
 
-Positional Thresholds:
+Positional Thresholds (normalised pixel co-ordinates):
 
 - Refers to the limit used to determine whether a change in relative positions surpasses a predefined threshold.
 - Relative positions are defined by two points and the x or y distance between them. 
@@ -39,10 +39,14 @@ The chosen angular and positional thresholds are based on the physiological prop
 - wrist-elbow-shoulder angle: 130 degrees
 - elbow-shoulder-hip angle: 30 degrees
 
+![Arm Extensions](./images/arm_extensions.png)
+
 ### Sit to Stand
 - ankle-knee-hip angle: 150 degrees
 - knee-hip-shoulder angle: 150 degrees
 - y co-ordinates of knee and hip points are within a distance of "0.2 $\times$ frame hight" of each other OR knee point is positionally higher than the hip point.
+
+![Sit to Stand](./images/sit_to_stand.png)
 
 ## Example Usage
 
@@ -59,3 +63,5 @@ EXAMPLE_POSITIONAL_THRESH = [
     ...
 ]
 ```
+
+###### image source: https://github.com/google/mediapipe/blob/master/docs/solutions/pose.md

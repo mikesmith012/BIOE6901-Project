@@ -27,7 +27,7 @@ Contains static definitions specifically used for this project.
 
 `FRAME_HEIGHT`: Max height of the video frame: 1080
 
-### Positional Thresholds
+### Positional Thresholds (normalised pixel co-ordinates)
 
 Landmark co-ordinates that are close to the edges of the frame often return inaccurate values. Therefore points that lay outside of these tresholds (near the edges of the frame) will be ignored by the "Movement Module" when counting reps.
 
@@ -35,7 +35,7 @@ Landmark co-ordinates that are close to the edges of the frame often return inac
 
 `MAX`: Maximum positional threshold: 0.98
 
-### Visibility Threshold
+### Visibility Threshold (between 0 and 1)
 
 All detected landmarks have a visibility value. Landmark points with a low visibility values often return inaccurate co-ordinate values as a result of the "Pose Estimation" predicting low visibility points. Therefore points that have a visibility value less than the threshold are ignored by the "Movement Module" when counting reps.
 
