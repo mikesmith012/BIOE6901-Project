@@ -126,3 +126,10 @@ right_foot = 32
 - Draws connections between detected points
 - Draws the bounding box
 - Returns the current video frame with the detected elements back-projected onto the frame and a copy of the landmark co-ordinated in pixel values.
+- **Tech Requirement 1.2:** Usability, User Interface:
+    - The video display must have all tracking points and appropriate line connections (eg: arm and leg connections) displayed onto the video while recording is active.
+    - The video display must show a bounding box around the current tracking subject if recording is active. Only one subject is to be tracked at any given time.
+- **Tech Requirement 2.4:** Data Capturing, Data Precision: 
+    - The motion tracking should at least track the following points on the human body on the left and right side (wrists, elbows, shoulders, hips, knees and ankles)
+- **Tech Requirement 6.10:** Performance, Device Independance:
+    - The program must be able to run on all computers with Windows 10 or later

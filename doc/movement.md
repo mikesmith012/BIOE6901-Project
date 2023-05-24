@@ -43,6 +43,8 @@ Contains a generic movement class. Each movement is defined by a set of angle (e
 - `img`: the current video frame
 - `source`: the current video source: (video or webcam)
 - Returns the current video frame and the current movement count.
+- **Tech Requirement 2.4:** Data Capturing, Data Precision:
+    - The motion tracking software is able to track arm extensions and sit to stand using the appropriate co-ordinate values.
 
 `def get_count(self)`
 - Returns the current movement count value

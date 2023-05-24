@@ -37,6 +37,8 @@ The main file contains two thread classes:
 - `cap`: video capture object returned from calling `cv2.VideoCapture()`
 - `name`: filename of the file to be opened. Defaults to `none` to open webcam.
 - returns a `cap` object from `cv2.VideoCapture()`, else returns `None` if failed to create a `cap` object.
+- **Tech Requirement 6.11:** Performance, Camera Independance: 
+    - The program should work with a range of cameras (including external webcams via USB) regardless of quality and resolution.
 
 `def set_frame_dimensions(self, cap, source)`
 - Set the camera or video resolution and show in terminal
@@ -47,6 +49,7 @@ The main file contains two thread classes:
 - Gets the file specified by the user
 - Checks if the file is a valid format supported by the program. See the "File Module" for a list of supported file formats.
 - `name`: name of the file to be retrieved
+- **Tech Requirement 1.2:**: Usability, User Interface: The application must allow for the user to browse for video files on the computer.
 
 `def generate_file(self, generate)`
 - Callback function for the main-window thread
@@ -56,6 +59,7 @@ The main file contains two thread classes:
 - Handles user exit
 - Will prompt the user to save recording if user exits while recording in active
 - `event`: not currently used
+- **Tech requirement 1.1:** Usability, Control: The application should notify the user if program exits while recording and ask if the session data should be saved.
 
 `def get_frame_rate(self, frame_times)`
 - Calculates frame rate
@@ -70,6 +74,8 @@ The main file contains two thread classes:
 `def get_input_source(self)`
 - Gets current input source
 - Returns the input source: video or webcam
+- **Tech Requirement 1.1:** Usability, Control: The application should allow the user to switch from playing a recorded video and the live feed from the webcam. 
+- **Tech Requirement 2.5:** Data Capturing, Video Playback: Program must allow user to select a video of their choice for playback and motion tracking. 
 
 `def start_stop_recording(self)`
 - Starts and stops recording
@@ -117,6 +123,16 @@ The main file contains two thread classes:
     - Pushbutton signals
     - Line-edit signals
     - Action menu triggers
+- Init and connect button controls:
+    - Start / Stop pushbutton
+    - Pause / Resume pushbutton
+    - **Tech Requirement 1.1:** Usability, Control:
+        - The interface should have a well labelled button to start recording
+        - The interface should have a well labelled button to stop recording
+        - The interface should have a well labelled pause button to pause the recording and motion tracking
+        - The interface should have a well labelled resume button to resume the recording and motion tracking
+    - **Tech Requirement 1.2:** Usability, User Interface:
+        - The design should be minimal to highlight the essential functions and promote easy manovuring
 
 `def closeEvent(self, event)`
 - Callback for when the user exit the program
@@ -125,11 +141,13 @@ The main file contains two thread classes:
 `def update_frame(self, img)`
 - Updates GUI interface whenever a new video frame is received from the main worker thread
 - `img`: object containing the current video frame, emitted by the main-worker thread
+- **Tech Requirement 1.2:** Usability, User Interface: The video should be displayed in a rectangular-shaped area on the interface that covers about 2/3 of the screen. 
 
 `def display_frame_rate(self, frame_rate)`
 - Shows the current frame rate on the gui 
 - Takes the average of the last ten frame rates for smoother output
 - `frame_rate`: the current calculated frame rate emitted from the main-worker thread
+- **Tech Requirement 3.6:** Performance, Visual Smoothness: The video playback should be smooth with the fram rate with at least 10 fps
 
 `def display_session_time(self, time)`
 - Displays the time since the start of session formatted as "h:mm:ss"
@@ -137,6 +155,7 @@ The main file contains two thread classes:
 
 `def update_start_pushButton(self)`
 - Updates the gui interface whenever the start / stop button is pressed
+- **Tech Requirement 3.7:** Performance, Software Optimisation: After interacting with the device, the corresponding response should take place immidiately 
 
 `def update_name_id(self)`
 - Called whenever the user enters anything into the name line edit
