@@ -21,6 +21,7 @@ DEFAULT_FILE_PATH = "./files"
 FILE_NOT_SUPPORTED = -1
 CSV = 0
 MP4 = 1
+AVI = 2
 
 """ max frame dimensions (full-hd): 1920 x 1080 """
 FRAME_WIDTH = 1920

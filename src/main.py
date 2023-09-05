@@ -242,7 +242,7 @@ class MainThread(QtCore.QThread):
         file_type = self._read_file.get_file_type(name)
 
         """ check that the file is valid and supported by program """
-        if file_type == util.MP4:
+        if file_type == util.MP4 or file_type == util.AVI:
             self._cap = self.get_video_capture(self._cap, name=name)
             print(f'video file: "{name}"')
 

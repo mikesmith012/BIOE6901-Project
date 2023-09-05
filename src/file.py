@@ -30,7 +30,7 @@ class File:
 
     """ default file path (in sub-dir "files" located in current dir) """
     file_path = util.DEFAULT_FILE_PATH
-    supported_files = {util.CSV: ".csv", util.MP4: ".mp4"}
+    supported_files = {util.CSV: ".csv", util.MP4: ".mp4", util.AVI: ".avi"}
 
     def __init__(self, save=True):
         """
